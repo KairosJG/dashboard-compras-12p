@@ -28,8 +28,7 @@
   .filters{display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:14px;margin-bottom:16px;}
   .filter-group{display:flex;flex-direction:column;gap:4px;min-width:150px;}
   .filter-group label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.03em;}
-  select, input[type=date], input[type=text], input[type=password], input[type=number]{background:var(--panel-2);color:var(--text);border:1px solid var(--line);border-radius:6px;padding:7px 8px;font-size:13px;}
-  select, input[type=date]{min-width:150px;}
+  select, input[type=date], input[type=month]{background:var(--panel-2);color:var(--text);border:1px solid var(--line);border-radius:6px;padding:7px 8px;font-size:13px;min-width:150px;}
   select[multiple]{min-height:70px;}
   .filter-clear{font-size:12px;color:var(--gold);cursor:pointer;background:none;border:none;text-decoration:underline;padding:0;}
   .month-pill{font-size:11px;color:var(--gold);background:#2a220c;border:1px solid var(--gold-dim);border-radius:20px;padding:4px 10px;}
@@ -49,7 +48,7 @@
   .card h3{margin:0 0 12px;font-size:13px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;}
   .chart-box{position:relative;height:260px;}
   .section-title{font-size:13px;font-weight:800;color:var(--gold);text-transform:uppercase;letter-spacing:.05em;margin:20px 0 10px;}
-  .people-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:14px;}
+  .people-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:14px;}
   .people-card{background:var(--panel-2);border:1px solid var(--line);border-radius:12px;overflow:hidden;}
   .people-card .bar{background:var(--gold);color:#0b0b0c;font-weight:800;font-size:13px;text-align:center;padding:9px 6px;letter-spacing:.02em;}
   .people-card .avatar-wrap{display:flex;justify-content:center;padding:16px 0 8px;}
@@ -63,23 +62,21 @@
   .people-card .big .num{font-size:20px;font-weight:800;color:var(--gold);}
   .people-card .big .lbl{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.03em;margin-top:2px;}
   .progress{height:6px;background:var(--panel);border-radius:3px;overflow:hidden;margin:0 14px 12px;}
-  .progress > div{height:100%;background:var(--gold);}
+  .progress > div{height:100%;}
   table{width:100%;border-collapse:collapse;font-size:13px;}
   th,td{padding:8px 10px;text-align:left;border-bottom:1px solid var(--line);}
   th{color:var(--muted);font-weight:700;font-size:11px;text-transform:uppercase;letter-spacing:.03em;}
   tr:hover td{background:var(--panel-2);}
   .alias-row{display:grid;grid-template-columns:1fr 1fr auto;gap:8px;align-items:center;margin-bottom:8px;}
-  .alias-row input{width:100%;}
+  .alias-row input{width:100%;background:var(--panel-2);color:var(--text);border:1px solid var(--line);border-radius:6px;padding:7px 8px;font-size:13px;}
   .small-btn{background:var(--panel-2);border:1px solid var(--line);color:var(--text);border-radius:6px;padding:6px 10px;font-size:12px;cursor:pointer;}
   .small-btn.danger{color:var(--bad);}
   .hint{font-size:12px;color:var(--muted);margin:6px 0 14px;line-height:1.5;}
   .unmapped-list{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;}
   .unmapped-chip{font-size:11px;background:var(--panel-2);border:1px solid var(--line);border-radius:20px;padding:3px 10px;color:var(--muted);cursor:pointer;}
-  .meta-row{display:grid;grid-template-columns:1fr 160px;gap:10px;align-items:center;padding:6px 0;border-bottom:1px solid var(--line);}
-  .meta-row:last-child{border-bottom:none;}
-  .lock-box{display:flex;gap:8px;align-items:center;margin-bottom:14px;flex-wrap:wrap;}
   .idea-list{font-size:13px;line-height:1.9;color:var(--text);}
   .idea-list li{margin-bottom:4px;}
+  .lock-note{font-size:12px;color:var(--muted);background:var(--panel-2);border:1px solid var(--line);border-radius:8px;padding:10px 12px;margin-bottom:12px;}
   ::-webkit-scrollbar{width:8px;height:8px;}
   ::-webkit-scrollbar-thumb{background:var(--line);border-radius:4px;}
 </style>
@@ -118,13 +115,13 @@
 
   <div class="tabs">
     <div class="tab active" data-tab="compras">Compras</div>
-    <div class="tab" data-tab="hf">Hunters &amp; Farmers</div>
+    <div class="tab" data-tab="hf">Hunters, Farmers &amp; XP</div>
     <div class="tab" data-tab="avancado">Dados avançados</div>
     <div class="tab" data-tab="settings">Configurações</div>
   </div>
 
   <div class="tabpanel active" id="tab-compras">
-    <p class="hint">Time de compras — conversões, valor gerado e meta mensal de cada um.</p>
+    <p class="hint">Time de compras — conversões, valor gerado, meta mensal e ritmo até hoje.</p>
     <div class="people-grid" id="comprasGrid"></div>
   </div>
 
@@ -135,6 +132,9 @@
     <div class="section-title">Farmers</div>
     <p class="hint">Cuidam da recompra / carteira ativa.</p>
     <div class="people-grid" id="farmersGrid"></div>
+    <div class="section-title">XP</div>
+    <p class="hint">Time XP.</p>
+    <div class="people-grid" id="xpGrid"></div>
   </div>
 
   <div class="tabpanel" id="tab-avancado">
@@ -144,7 +144,7 @@
         <div class="chart-box"><canvas id="chartMonth"></canvas></div>
       </div>
       <div class="card">
-        <h3>Meta vs. realizado no mês — Hunters &amp; Farmers</h3>
+        <h3>Meta vs. realizado no mês — Hunters, Farmers &amp; XP</h3>
         <div class="chart-box"><canvas id="chartMetaReal"></canvas></div>
       </div>
     </div>
@@ -157,7 +157,7 @@
     </div>
     <div class="card">
       <h3>Vendedores não classificados</h3>
-      <p class="hint">Apareceram na planilha mas ainda não estão em nenhuma lista de Hunter/Farmer. Mapeie em Configurações.</p>
+      <p class="hint">Apareceram na planilha mas ainda não estão em nenhuma lista (Hunter/Farmer/XP). Mapeie em Configurações.</p>
       <table>
         <thead><tr><th>Nome na planilha</th><th>Nº vendas</th><th>Valor total</th></tr></thead>
         <tbody id="outrosBody"></tbody>
@@ -167,12 +167,12 @@
       <h3>Ideias para próximas métricas</h3>
       <p class="hint">Sugestões — me diga quais você quer que eu implemente:</p>
       <ul class="idea-list">
-        <li>Taxa de conversão: nº de leads recebidos vs. nº fechados por hunter/farmer</li>
+        <li>Taxa de conversão: nº de leads recebidos vs. nº fechados por hunter/farmer/XP</li>
         <li>Evolução dos últimos 6 meses por pessoa (linha do tempo individual)</li>
         <li>Ranking mensal com posição do mês anterior (subiu/desceu)</li>
         <li>Maior venda do mês e menor ciclo de fechamento</li>
         <li>Concentração de carteira: quanto os top 5 clientes representam do total</li>
-        <li>Alerta automático quando alguém está abaixo de X% da meta a poucos dias do fim do mês</li>
+        <li>Alerta visual quando alguém está muito abaixo do ritmo esperado a poucos dias do fim do mês</li>
         <li>Exportar relatório mensal em PDF com um clique</li>
       </ul>
     </div>
@@ -181,12 +181,12 @@
   <div class="tabpanel" id="tab-settings">
     <div class="card">
       <h3>Metas mensais</h3>
-      <div class="filter-group" style="margin-bottom:12px;">
-        <label>Mês de referência</label>
-        <input type="month" id="metaMonth">
+      <div class="lock-note">
+        Todas as metas (Compras, Hunters, Farmers e XP) vêm da aba "Metas" da planilha do Google Sheets, com edição restrita
+        por um intervalo protegido — só quem você autorizou lá consegue mudar os valores. Este site apenas exibe, nunca edita.
       </div>
-      <div class="lock-box" id="lockBox"></div>
-      <div id="metasWrap"></div>
+      <div class="filter-group" style="margin-bottom:12px;"><label>Ver metas do mês</label><input type="month" id="metaMonth"></div>
+      <div id="metasReadonlyWrap"></div>
     </div>
     <div class="card">
       <h3>Mapeamento de nomes — Compras</h3>
@@ -195,8 +195,8 @@
       <button class="small-btn" id="btnAddAlias">+ adicionar mapeamento</button>
     </div>
     <div class="card">
-      <h3>Mapeamento de nomes — Hunters &amp; Farmers</h3>
-      <p class="hint">Liga o nome como aparece na planilha (coluna vendedor) à pessoa da lista de Hunter/Farmer.</p>
+      <h3>Mapeamento de nomes — Hunters, Farmers &amp; XP</h3>
+      <p class="hint">Liga o nome como aparece na planilha (coluna vendedor) à pessoa da lista correspondente.</p>
       <div id="vendorAliasRows"></div>
       <button class="small-btn" id="btnAddVendorAlias">+ adicionar mapeamento</button>
       <div style="margin-top:16px;">
@@ -211,10 +211,16 @@
 <script>
 const GOALS_CSV = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vR3O2y8LsZD7lnm1Hw_wfZoYJek_fjKfNjtjnxMix1KwD4pHcll1_J7MXCrl6Kc86DOdu_11YhJxxXa/pub?output=csv';
 const SALES_CSV = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vR3O2y8LsZD7lnm1Hw_wfZoYJek_fjKfNjtjnxMix1KwD4pHcll1_J7MXCrl6Kc86DOdu_11YhJxxXa/pub?gid=1071860344&single=true&output=csv';
+const METAS_CSV = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vR3O2y8LsZD7lnm1Hw_wfZoYJek_fjKfNjtjnxMix1KwD4pHcll1_J7MXCrl6Kc86DOdu_11YhJxxXa/pub?gid=2049238854&single=true&output=csv';
 
-const APPROVED_CONSULTANTS = ['Laura','Malu','Beatriz Alcara','Rafael "Chelo" Teixeira','Mariana Estevão','Matheus Rocha','João Pedro','JP Brasil'];
+const APPROVED_CONSULTANTS = ['Laura','Malu','Beatriz Alcara','Rafael "Chelo" Teixeira','Mariana Estevão','Matheus Rocha','João Pedro','JP Brasil','Kevin'];
 const HUNTERS = ['Jayanne','Monique','Thiago','Maira','Duymi'];
-const FARMERS = ['Pablo','Raul','Ana Carolina','Victor Hugo (Choco)','Andres','Roberto','Danilo'];
+const FARMERS = ['Pablo','Raul','Ana Carolina','Victor Hugo (Choco)','Andres','Roberto','Danilo','Fernando Finatto'];
+const XP = ['Amarylis Silva','Diana Silva'];
+
+// Monthly targets now live in a protected tab of the Google Sheet ("Metas"),
+// fetched into state.metas at load time — see loadMetas(). Editing happens
+// in the Sheet (with a protected range), never inside this page.
 
 const DEFAULT_ALIASES = {
   'laura':'Laura','malu':'Malu','maria barros':'Malu',
@@ -223,11 +229,12 @@ const DEFAULT_ALIASES = {
   'rafael chelo texeira':'Rafael "Chelo" Teixeira','rafael "chelo" texeira':'Rafael "Chelo" Teixeira',
   'mariana':'Mariana Estevão','mari':'Mariana Estevão','mariana estevao':'Mariana Estevão',
   'matheus':'Matheus Rocha','matheus rocha':'Matheus Rocha',
-  'joao pedro':'João Pedro','jp':'João Pedro','jp brasil':'JP Brasil'
+  'joao pedro':'João Pedro','jp':'João Pedro','jp brasil':'JP Brasil',
+  'kevin':'Kevin','kevin anjos':'Kevin'
 };
 
-// Best-guess mapping from raw "Assigned" (vendedor) names to the Hunter/Farmer rosters.
-// NOTE: 'victor biselli' -> 'Victor Hugo (Choco)' is an assumption — confirm/adjust in Configurações if wrong.
+// Best-guess mapping from raw "Assigned" (vendedor) names to Hunter/Farmer/XP rosters.
+// NOTE: 'victor biselli' -> 'Victor Hugo (Choco)' is an assumption — confirm/adjust below if wrong.
 const DEFAULT_VENDOR_ALIASES = {
   'thiago':'Thiago','thiago cardoso':'Thiago',
   'monique':'Monique','monique moreira':'Monique',
@@ -238,12 +245,15 @@ const DEFAULT_VENDOR_ALIASES = {
   'ana carolina':'Ana Carolina','ana carolina pepe':'Ana Carolina',
   'victor hugo':'Victor Hugo (Choco)','choco':'Victor Hugo (Choco)','victor biselli':'Victor Hugo (Choco)',
   'andres':'Andres','andres pino':'Andres',
-  'pablo':'Pablo','roberto':'Roberto','danilo':'Danilo'
+  'pablo':'Pablo','pablo fernandes':'Pablo',
+  'roberto':'Roberto','danilo':'Danilo',
+  'fernando':'Fernando Finatto','fernando finatto':'Fernando Finatto',
+  'amarylis':'Amarylis Silva','amarylis silva':'Amarylis Silva',
+  'diana':'Diana Silva','diana silva':'Diana Silva'
 };
 
 let state = {
-  sales: [], goals: [], aliasMap: {}, vendorAliasMap: {},
-  metas: {}, metasPassword: null, metasUnlocked: false,
+  sales: [], goals: [], metas: {}, aliasMap: {}, vendorAliasMap: {},
   charts: {}, defaultsApplied: false
 };
 
@@ -300,6 +310,7 @@ function vendorCanonical(raw){
   if(name){
     if(HUNTERS.includes(name)) return {name, group:'hunter'};
     if(FARMERS.includes(name)) return {name, group:'farmer'};
+    if(XP.includes(name)) return {name, group:'xp'};
     return {name, group:'outros'};
   }
   return {name: raw.trim(), group:'outros'};
@@ -334,7 +345,7 @@ async function fetchCSVText(url){
 }
 function parseCSV(text){ return Papa.parse(text, {skipEmptyLines:false}).data; }
 
-// ---------- goals parsing ----------
+// ---------- goals parsing (Compras metas come from here — live sheet) ----------
 const GOAL_KEYS = ['CONVERSÔES','CONVERSOES','META','META DE SIMULAÇÕES','META DE SIMULACOES','SIMULAÇÕES ENTREGUES','SIMULACOES ENTREGUES','SIMULAÇÕES ENTREGUES MÊS','SIMULACOES ENTREGUES MES','SIMULAÇÕES ENTREGUES HOJE','SIMULACOES ENTREGUES HOJE','META DO SPRINT','ENTREGAS DO SPRINT','NOVAS ENVIADAS PARA A PROCESS','ALTERAÇÕES ENVIADAS A PROCESS','ALTERACOES ENVIADAS A PROCESS','NOVAS  ENTREGUES','NOVAS ENTREGUES','ALTERAÇÕES ENTREGUES','ALTERACOES ENTREGUES','NOVAS ONGOING','ALTERAÇÕES ONGOING','ALTERACOES ONGOING','DATA'];
 function isKnownKey(label){ if(!label) return false; const up = stripAccents(label.trim().toUpperCase()); return GOAL_KEYS.some(k=>stripAccents(k.toUpperCase())===up); }
 function normalizeKeyLabel(label){
@@ -371,6 +382,26 @@ function loadGoals(csvText){
   const right = parseGoalsBlock(rows, 11, 12);
   state.goals = [...left, ...right].filter(p=>p.name && p.name.length>1)
     .map(g=>({...g, canonical: canonicalName(g.name)})).filter(g=>g.canonical);
+}
+
+// ---------- metas parsing (Mes, Grupo, Nome, Meta) ----------
+function loadMetas(csvText){
+  const rows = parseCSV(csvText);
+  const metas = {};
+  for(let i=1;i<rows.length;i++){
+    const row = rows[i];
+    if(!row || row.length<4) continue;
+    const mes = (row[0]||'').toString().trim();
+    const grupo = (row[1]||'').toString().trim().toLowerCase();
+    const nome = (row[2]||'').toString().trim();
+    const valorRaw = row[3];
+    if(!mes || !grupo || !nome) continue;
+    const valor = parseBRNumber(valorRaw);
+    if(!metas[mes]) metas[mes] = {compras:{}, hunter:{}, farmer:{}, xp:{}};
+    if(!metas[mes][grupo]) metas[mes][grupo] = {};
+    if(valorRaw!==undefined && valorRaw!==null && String(valorRaw).trim()!=='') metas[mes][grupo][nome] = valor;
+  }
+  state.metas = metas;
 }
 
 // ---------- sales parsing ----------
@@ -419,17 +450,13 @@ function loadSales(csvText){
   state.sales = sales.filter(s=>s.date);
 }
 
-// ---------- persistence ----------
+// ---------- persistence (only for name-mapping tools, NOT for metas) ----------
 async function loadPersisted(){
   try{ const r = await window.storage.get('consultor-alias-map-v2', true); if(r&&r.value) state.aliasMap = JSON.parse(r.value); }catch(e){}
   try{ const r = await window.storage.get('vendor-alias-map-v1', true); if(r&&r.value) state.vendorAliasMap = JSON.parse(r.value); }catch(e){}
-  try{ const r = await window.storage.get('metas-mensais-v1', true); if(r&&r.value) state.metas = JSON.parse(r.value); }catch(e){}
-  try{ const r = await window.storage.get('metas-password-v1', true); if(r&&r.value) state.metasPassword = JSON.parse(r.value); }catch(e){}
 }
 async function saveAliasMap(){ try{ await window.storage.set('consultor-alias-map-v2', JSON.stringify(state.aliasMap), true); }catch(e){} }
 async function saveVendorAliasMap(){ try{ await window.storage.set('vendor-alias-map-v1', JSON.stringify(state.vendorAliasMap), true); }catch(e){} }
-async function saveMetas(){ try{ await window.storage.set('metas-mensais-v1', JSON.stringify(state.metas), true); }catch(e){} }
-async function saveMetasPassword(){ try{ await window.storage.set('metas-password-v1', JSON.stringify(state.metasPassword), true); }catch(e){} }
 
 // ---------- main load ----------
 async function loadAllData(){
@@ -441,6 +468,13 @@ async function loadAllData(){
     [goalsText, salesText] = await Promise.all([fetchCSVText(GOALS_CSV), fetchCSVText(SALES_CSV)]);
     loadGoals(goalsText);
     loadSales(salesText);
+    try{
+      const metasText = await fetchCSVText(METAS_CSV);
+      loadMetas(metasText);
+    }catch(metaErr){
+      console.warn('Metas sheet not loaded:', metaErr);
+      state.metas = {};
+    }
   }catch(e){
     console.error(e);
     document.getElementById('banners').innerHTML = '<div class="banner err">Não consegui carregar os dados da planilha agora (' + (e.message||'erro de rede') + '). Clique em "Atualizar dados" para tentar de novo.</div>';
@@ -498,12 +532,32 @@ function getFiltered(){
     return true;
   });
 }
-function currentMetaMonthKey(){ return document.getElementById('metaMonth').value || toMonthInput(new Date()); }
+function activeMonthKey(){
+  const fromStr = document.getElementById('fDateFrom').value;
+  if(fromStr) return fromStr.slice(0,7);
+  return toMonthInput(new Date());
+}
 function getMeta(group, name){
-  const mk = document.getElementById('fDateFrom').value ? document.getElementById('fDateFrom').value.slice(0,7) : toMonthInput(new Date());
+  const mk = activeMonthKey();
   const bucket = state.metas[mk];
   if(bucket && bucket[group] && bucket[group][name]!=null) return bucket[group][name];
+  if(group==='compras'){
+    const g = state.goals.find(g=>g.canonical===name);
+    if(g && g.meta) return g.meta;
+  }
   return null;
+}
+// how much of the month has elapsed, based on the real calendar date vs. the month being viewed
+function paceFraction(){
+  const mk = activeMonthKey();
+  const [y,m] = mk.split('-').map(Number);
+  const daysInMonth = new Date(y, m, 0).getDate();
+  const today = new Date();
+  const viewedMonth = new Date(y, m-1, 1);
+  const todayMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+  if(viewedMonth.getTime() < todayMonth.getTime()) return 1;
+  if(viewedMonth.getTime() > todayMonth.getTime()) return 0;
+  return Math.min(1, today.getDate()/daysInMonth);
 }
 
 // ---------- render ----------
@@ -541,38 +595,47 @@ function computeConsultantStats(filtered){
   return byC;
 }
 function computeVendorStats(filtered, group){
-  const roster = group==='hunter'?HUNTERS:FARMERS;
+  const roster = group==='hunter'?HUNTERS:(group==='farmer'?FARMERS:XP);
   const byV = {}; for(const n of roster) byV[n] = {count:0, valor:0};
   for(const s of filtered){ if(s.vendedorGroup===group){ if(!byV[s.vendedorName]) byV[s.vendedorName]={count:0,valor:0}; byV[s.vendedorName].count++; byV[s.vendedorName].valor+=s.valor; } }
   return byV;
 }
 
-function peopleCard(name, stats, metaVal, showConversoes){
-  const pct = metaVal ? Math.min(100, Math.round((stats.valor/metaVal)*100)) : null;
+function peopleCard(name, stats, metaVal, opts){
+  opts = opts || {};
+  const pct = metaVal ? Math.round((stats.valor/metaVal)*100) : null;
+  const pctClamped = pct!=null ? Math.min(100,pct) : null;
+  const barColor = pct==null ? 'var(--gold)' : (pct>=100 ? 'var(--good)' : (pct< (paceFraction()*100-15) ? 'var(--bad)' : 'var(--gold)'));
+  let paceRow = '';
+  if(opts.showPace && metaVal){
+    const expected = metaVal * paceFraction();
+    paceRow = `<div class="row"><span>Deveria ter vendido</span><span>${fmtCurrencyShort(expected)}</span></div>`;
+  }
   return `<div class="people-card">
     <div class="bar">${name}</div>
     <div class="avatar-wrap">${avatarHTML(name,64)}</div>
     <div class="big"><div class="num">${fmtCurrencyShort(stats.valor)}</div><div class="lbl">vendido no período</div></div>
-    ${metaVal!=null ? `<div class="progress"><div style="width:${pct}%"></div></div>` : ''}
+    ${metaVal!=null ? `<div class="progress"><div style="width:${pctClamped}%;background:${barColor};"></div></div>` : ''}
     <div class="metrics">
-      ${showConversoes ? `<div class="row"><span>Conversões</span><span>${stats.count}</span></div>` : `<div class="row"><span>Nº vendas</span><span>${stats.count}</span></div>`}
-      ${metaVal!=null ? `<div class="row"><span>Meta do mês</span><span>${fmtCurrencyShort(metaVal)}</span></div><div class="row"><span>% da meta</span><span>${pct}%</span></div>` : `<div class="row"><span>Meta do mês</span><span>não definida</span></div>`}
+      ${opts.showConversoes ? `<div class="row"><span>Conversões</span><span>${stats.count}</span></div>` : `<div class="row"><span>Nº vendas</span><span>${stats.count}</span></div>`}
+      ${metaVal!=null ? `<div class="row"><span>Meta do mês</span><span>${fmtCurrencyShort(metaVal)}</span></div><div class="row"><span>% da meta atingido</span><span>${pct}%</span></div>${paceRow}` : `<div class="row"><span>Meta do mês</span><span>não definida</span></div>`}
     </div>
   </div>`;
 }
 
 function renderCompras(filtered){
   const stats = computeConsultantStats(filtered);
-  document.getElementById('comprasGrid').innerHTML = APPROVED_CONSULTANTS.map(name=>{
-    const meta = getMeta('compras', name);
-    return peopleCard(name, stats[name], meta, true);
-  }).join('');
+  document.getElementById('comprasGrid').innerHTML = APPROVED_CONSULTANTS.map(name=>
+    peopleCard(name, stats[name], getMeta('compras', name), {showConversoes:true, showPace:true})
+  ).join('');
 }
 function renderHF(filtered){
   const hStats = computeVendorStats(filtered, 'hunter');
   const fStats = computeVendorStats(filtered, 'farmer');
-  document.getElementById('huntersGrid').innerHTML = HUNTERS.map(name=>peopleCard(name, hStats[name], getMeta('hunter', name), false)).join('');
-  document.getElementById('farmersGrid').innerHTML = FARMERS.map(name=>peopleCard(name, fStats[name], getMeta('farmer', name), false)).join('');
+  const xStats = computeVendorStats(filtered, 'xp');
+  document.getElementById('huntersGrid').innerHTML = HUNTERS.map(name=>peopleCard(name, hStats[name], getMeta('hunter', name), {})).join('');
+  document.getElementById('farmersGrid').innerHTML = FARMERS.map(name=>peopleCard(name, fStats[name], getMeta('farmer', name), {})).join('');
+  document.getElementById('xpGrid').innerHTML = XP.map(name=>peopleCard(name, xStats[name], getMeta('xp', name), {})).join('');
 }
 function renderTicketTable(filtered){
   const stats = computeConsultantStats(filtered);
@@ -598,14 +661,11 @@ function renderCharts(filtered){
     options:{ responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}}, scales:{ x:{ticks:{color:'#9a9a9f'},grid:{color:'#2a2a2e'}}, y:{ticks:{color:'#9a9a9f'},grid:{color:'#2a2a2e'}} } }
   });
 
-  const hStats = computeVendorStats(filtered,'hunter'), fStats = computeVendorStats(filtered,'farmer');
-  const people = [...HUNTERS.map(n=>({n,s:hStats[n]})), ...FARMERS.map(n=>({n,s:fStats[n]}))];
+  const hStats = computeVendorStats(filtered,'hunter'), fStats = computeVendorStats(filtered,'farmer'), xStats = computeVendorStats(filtered,'xp');
+  const people = [...HUNTERS.map(n=>({n,g:'hunter',s:hStats[n]})), ...FARMERS.map(n=>({n,g:'farmer',s:fStats[n]})), ...XP.map(n=>({n,g:'xp',s:xStats[n]}))];
   const labels = people.map(p=>p.n);
   const realizado = people.map(p=>p.s.valor);
-  const metas = people.map(p=>{
-    const g = HUNTERS.includes(p.n)?'hunter':'farmer';
-    return getMeta(g,p.n) || 0;
-  });
+  const metas = people.map(p=>getMeta(p.g,p.n) || 0);
   destroyChart('metaReal');
   state.charts.metaReal = new Chart(document.getElementById('chartMetaReal'), {
     type:'bar',
@@ -613,8 +673,7 @@ function renderCharts(filtered){
       {label:'Realizado', data: realizado, backgroundColor:'#3ecf7a'},
       {label:'Meta', data: metas, backgroundColor:'#2a2a2e'}
     ]},
-    options:{ responsive:true, maintainAspectRatio:false,
-      plugins:{legend:{labels:{color:'#f2f2f0'}}},
+    options:{ responsive:true, maintainAspectRatio:false, plugins:{legend:{labels:{color:'#f2f2f0'}}},
       scales:{ x:{ticks:{color:'#9a9a9f'},grid:{color:'#2a2a2e'}}, y:{ticks:{color:'#9a9a9f'},grid:{color:'#2a2a2e'}} } }
   });
 }
@@ -632,7 +691,7 @@ function renderSettings(){
   const vendorNames = new Set(state.sales.map(s=>s.vendedorName));
   document.getElementById('vendorNamesList').innerHTML = [...vendorNames].sort().map(n=>`<span class="unmapped-chip" onclick="navigator.clipboard && navigator.clipboard.writeText('${n.replace(/'/g,"\\'")}')">${n}</span>`).join('');
 
-  renderMetasPanel();
+  renderMetasReadonly();
 }
 function addAliasRow(wrap, fromVal, toVal, isDefault, mapName){
   const row = document.createElement('div');
@@ -665,64 +724,26 @@ function addAliasRow(wrap, fromVal, toVal, isDefault, mapName){
 document.getElementById('btnAddAlias').addEventListener('click', ()=> addAliasRow(document.getElementById('aliasRows'),'','',false,'aliasMap'));
 document.getElementById('btnAddVendorAlias').addEventListener('click', ()=> addAliasRow(document.getElementById('vendorAliasRows'),'','',false,'vendorAliasMap'));
 
-// ---------- settings: metas + password lock ----------
-function renderMetasPanel(){
-  const lockBox = document.getElementById('lockBox');
-  if(!state.metasUnlocked){
-    lockBox.innerHTML = `
-      <input type="password" id="unlockPass" placeholder="senha para editar metas">
-      <button class="btn secondary" id="btnUnlock">Desbloquear edição</button>
-      <span class="hint" style="margin:0;">senha padrão: <b>compras12p</b> (troque depois de desbloquear)</span>
-    `;
-    document.getElementById('btnUnlock').addEventListener('click', ()=>{
-      const val = document.getElementById('unlockPass').value;
-      const expected = state.metasPassword || 'compras12p';
-      if(val === expected){ state.metasUnlocked = true; renderMetasPanel(); }
-      else { lockBox.insertAdjacentHTML('beforeend', '<span style="color:var(--bad);font-size:12px;">senha incorreta</span>'); }
-    });
-    document.getElementById('metasWrap').innerHTML = '<p class="hint">Desbloqueie para ver e editar os valores.</p>';
-    return;
-  }
-  lockBox.innerHTML = `
-    <span style="color:var(--good);font-size:12px;">🔓 edição desbloqueada para esta sessão</span>
-    <input type="password" id="newPass" placeholder="nova senha">
-    <button class="small-btn" id="btnChangePass">salvar nova senha</button>
-    <button class="small-btn" id="btnLock">bloquear de novo</button>
-  `;
-  document.getElementById('btnChangePass').addEventListener('click', async ()=>{
-    const np = document.getElementById('newPass').value.trim();
-    if(np){ state.metasPassword = np; await saveMetasPassword(); alert('Senha atualizada.'); }
-  });
-  document.getElementById('btnLock').addEventListener('click', ()=>{ state.metasUnlocked=false; renderMetasPanel(); });
-
+// ---------- settings: read-only metas view ----------
+function renderMetasReadonly(){
   const mk = document.getElementById('metaMonth').value || toMonthInput(new Date());
-  if(!state.metas[mk]) state.metas[mk] = {compras:{}, hunter:{}, farmer:{}};
   const groups = [
     {key:'compras', label:'Compras', names: APPROVED_CONSULTANTS},
     {key:'hunter', label:'Hunters', names: HUNTERS},
-    {key:'farmer', label:'Farmers', names: FARMERS}
+    {key:'farmer', label:'Farmers', names: FARMERS},
+    {key:'xp', label:'XP', names: XP}
   ];
-  let html = '';
+  let html = '<table><thead><tr><th>Grupo</th><th>Nome</th><th>Meta</th></tr></thead><tbody>';
   for(const g of groups){
-    html += `<div class="section-title" style="margin-top:14px;">${g.label}</div>`;
     for(const name of g.names){
-      const val = state.metas[mk][g.key][name] ?? '';
-      html += `<div class="meta-row"><span>${name}</span><input type="number" step="0.01" data-group="${g.key}" data-name="${name}" value="${val}" placeholder="R$ 0,00"></div>`;
+      const val = getMeta(g.key, name);
+      html += `<tr><td>${g.label}</td><td>${name}</td><td>${val!=null ? fmtCurrency(val) : '<span style="color:var(--muted);">não definida</span>'}</td></tr>`;
     }
   }
-  document.getElementById('metasWrap').innerHTML = html;
-  document.querySelectorAll('#metasWrap input[type=number]').forEach(inp=>{
-    inp.addEventListener('change', async ()=>{
-      const mk2 = document.getElementById('metaMonth').value || toMonthInput(new Date());
-      if(!state.metas[mk2]) state.metas[mk2] = {compras:{}, hunter:{}, farmer:{}};
-      const v = parseFloat(inp.value);
-      state.metas[mk2][inp.dataset.group][inp.dataset.name] = isNaN(v) ? null : v;
-      await saveMetas();
-      renderAll();
-    });
-  });
+  html += '</tbody></table>';
+  document.getElementById('metasReadonlyWrap').innerHTML = html;
 }
-document.getElementById('metaMonth').addEventListener('change', ()=>{ renderMetasPanel(); });
+document.getElementById('metaMonth').addEventListener('change', renderMetasReadonly);
 
 // ---------- tabs ----------
 document.querySelectorAll('.tab').forEach(tab=>{
