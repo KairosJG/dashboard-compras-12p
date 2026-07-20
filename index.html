@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>12P — Dashboard Compras</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.3/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/chart.js/4.4.3/chart.umd.min.js"></script>
 <style>
   :root{
     --bg:#0b0b0c;
@@ -21,118 +21,75 @@
     --radius:10px;
   }
   *{box-sizing:border-box;}
-  body{
-    margin:0;
-    background:var(--bg);
-    color:var(--text);
-    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
-  }
+  body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;}
   .wrap{max-width:1280px;margin:0 auto;padding:18px 20px 60px;}
 
-  /* header */
-  header.top{
-    display:flex;align-items:center;justify-content:space-between;
-    gap:16px;flex-wrap:wrap;
-    padding:14px 18px;
-    background:var(--panel);
-    border:1px solid var(--line);
-    border-radius:var(--radius);
-    margin-bottom:16px;
-  }
+  header.top{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;padding:14px 18px;background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);margin-bottom:16px;}
   .brand{display:flex;align-items:center;gap:12px;}
-  .logo{
-    font-weight:900;font-size:22px;letter-spacing:-0.5px;
-    background:var(--gold);color:#0b0b0c;
-    padding:6px 10px;border-radius:6px;
-  }
+  .logo{font-weight:900;font-size:22px;letter-spacing:-0.5px;background:var(--gold);color:#0b0b0c;padding:6px 10px;border-radius:6px;}
   .brand h1{font-size:15px;margin:0;font-weight:700;color:var(--text);}
   .brand .sub{font-size:11px;color:var(--muted);margin-top:2px;}
   .top-actions{display:flex;align-items:center;gap:10px;font-size:12px;color:var(--muted);}
-  button.btn{
-    background:var(--gold);color:#0b0b0c;border:none;font-weight:700;
-    padding:8px 14px;border-radius:8px;cursor:pointer;font-size:13px;
-  }
-  button.btn.secondary{
-    background:transparent;color:var(--text);border:1px solid var(--line);
-  }
-  button.btn:disabled{opacity:.5;cursor:default;}
+  button.btn{background:var(--gold);color:#0b0b0c;border:none;font-weight:700;padding:8px 14px;border-radius:8px;cursor:pointer;font-size:13px;}
+  button.btn.secondary{background:transparent;color:var(--text);border:1px solid var(--line);}
 
-  /* status banner */
-  .banner{
-    padding:10px 14px;border-radius:8px;font-size:13px;margin-bottom:16px;
-    border:1px solid var(--line);
-  }
+  .banner{padding:10px 14px;border-radius:8px;font-size:13px;margin-bottom:16px;border:1px solid var(--line);}
   .banner.err{background:#2a1414;border-color:#5a2323;color:#ffb4b4;}
-  .banner.info{background:#14201c;border-color:#234a37;color:#b7ecd2;}
 
-  /* filters */
-  .filters{
-    display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;
-    background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);
-    padding:14px;margin-bottom:16px;
-  }
+  .filters{display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:14px;margin-bottom:16px;}
   .filter-group{display:flex;flex-direction:column;gap:4px;min-width:150px;}
   .filter-group label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.03em;}
-  select, input[type=date]{
-    background:var(--panel-2);color:var(--text);border:1px solid var(--line);
-    border-radius:6px;padding:7px 8px;font-size:13px;min-width:150px;
-  }
+  select, input[type=date]{background:var(--panel-2);color:var(--text);border:1px solid var(--line);border-radius:6px;padding:7px 8px;font-size:13px;min-width:150px;}
   select[multiple]{min-height:70px;}
   .filter-clear{font-size:12px;color:var(--gold);cursor:pointer;background:none;border:none;text-decoration:underline;padding:0;}
+  .month-pill{font-size:11px;color:var(--gold);background:#2a220c;border:1px solid var(--gold-dim);border-radius:20px;padding:4px 10px;}
 
-  /* KPI cards */
   .kpi-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px;margin-bottom:18px;}
-  .kpi{
-    background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);
-    padding:16px;
-  }
+  .kpi{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:16px;}
   .kpi .label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;margin-bottom:6px;}
   .kpi .value{font-size:24px;font-weight:800;color:var(--gold);}
   .kpi .sub{font-size:11px;color:var(--muted);margin-top:4px;}
 
-  /* tabs */
   .tabs{display:flex;gap:6px;margin-bottom:16px;border-bottom:1px solid var(--line);flex-wrap:wrap;}
-  .tab{
-    padding:10px 16px;font-size:13px;font-weight:700;color:var(--muted);
-    cursor:pointer;border-bottom:2px solid transparent;
-  }
+  .tab{padding:10px 16px;font-size:13px;font-weight:700;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;}
   .tab.active{color:var(--gold);border-color:var(--gold);}
   .tabpanel{display:none;}
   .tabpanel.active{display:block;}
 
-  /* charts grid */
   .grid-2{display:grid;grid-template-columns:1.3fr 1fr;gap:14px;margin-bottom:14px;}
-  .grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:14px;}
-  @media (max-width:900px){.grid-2,.grid-3{grid-template-columns:1fr;}}
+  @media (max-width:900px){.grid-2{grid-template-columns:1fr;}}
   .card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:16px;}
   .card h3{margin:0 0 12px;font-size:13px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;}
   .chart-box{position:relative;height:260px;}
 
-  /* consultant cards */
-  .cons-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:12px;}
-  .cons-card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:14px;}
-  .cons-card .name{font-weight:800;font-size:14px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;}
-  .cons-card .metric-row{display:flex;justify-content:space-between;font-size:12px;color:var(--muted);margin-bottom:3px;}
-  .cons-card .metric-row b{color:var(--text);font-weight:600;}
-  .progress{height:6px;background:var(--panel-2);border-radius:3px;overflow:hidden;margin:8px 0 4px;}
-  .progress > div{height:100%;background:var(--gold);}
-  .badge{font-size:10px;padding:2px 7px;border-radius:20px;background:var(--panel-2);color:var(--muted);border:1px solid var(--line);}
+  /* people cards (sheet-style) */
+  .people-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:14px;}
+  .people-card{background:var(--panel-2);border:1px solid var(--line);border-radius:12px;overflow:hidden;}
+  .people-card .bar{background:var(--gold);color:#0b0b0c;font-weight:800;font-size:13px;text-align:center;padding:9px 6px;letter-spacing:.02em;}
+  .people-card .avatar-wrap{display:flex;justify-content:center;padding:16px 0 8px;}
+  .avatar{border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:800;color:#0b0b0c;}
+  .people-card .metrics{margin:0 14px 14px;border:1px solid var(--line);border-radius:6px;overflow:hidden;}
+  .people-card .metrics .row{display:flex;justify-content:space-between;gap:8px;padding:7px 10px;font-size:12px;border-bottom:1px solid var(--line);background:var(--panel);}
+  .people-card .metrics .row:last-child{border-bottom:none;}
+  .people-card .metrics .row span:first-child{color:var(--muted);}
+  .people-card .metrics .row span:last-child{font-weight:700;color:var(--gold);text-align:right;}
+  .people-card .big{text-align:center;padding:0 14px 16px;}
+  .people-card .big .num{font-size:22px;font-weight:800;color:var(--gold);}
+  .people-card .big .lbl{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.03em;margin-top:2px;}
 
-  /* table */
   table{width:100%;border-collapse:collapse;font-size:13px;}
   th,td{padding:8px 10px;text-align:left;border-bottom:1px solid var(--line);}
   th{color:var(--muted);font-weight:700;font-size:11px;text-transform:uppercase;letter-spacing:.03em;}
   tr:hover td{background:var(--panel-2);}
   select.role-select{min-width:120px;padding:4px 6px;font-size:12px;}
 
-  /* settings */
   .alias-row{display:grid;grid-template-columns:1fr 1fr auto;gap:8px;align-items:center;margin-bottom:8px;}
-  .alias-row input, .alias-row select{width:100%;}
+  .alias-row input{width:100%;}
   .small-btn{background:var(--panel-2);border:1px solid var(--line);color:var(--text);border-radius:6px;padding:6px 10px;font-size:12px;cursor:pointer;}
   .small-btn.danger{color:var(--bad);}
   .hint{font-size:12px;color:var(--muted);margin:6px 0 14px;line-height:1.5;}
   .unmapped-list{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;}
-  .unmapped-chip{font-size:11px;background:var(--panel-2);border:1px solid var(--line);border-radius:20px;padding:3px 10px;color:var(--muted);}
+  .unmapped-chip{font-size:11px;background:var(--panel-2);border:1px solid var(--line);border-radius:20px;padding:3px 10px;color:var(--muted);cursor:pointer;}
 
   ::-webkit-scrollbar{width:8px;height:8px;}
   ::-webkit-scrollbar-thumb{background:var(--line);border-radius:4px;}
@@ -174,51 +131,51 @@
       <label>Consultor(a) de conversão</label>
       <select id="fConsultor" multiple></select>
     </div>
-    <div class="filter-group">
-      <label>Pipeline</label>
-      <select id="fPipeline" multiple></select>
-    </div>
-    <button class="filter-clear" id="btnClearFilters">limpar filtros</button>
+    <span class="month-pill" id="monthPill"></span>
+    <button class="filter-clear" id="btnClearFilters">voltar para o mês atual</button>
   </div>
 
   <div class="kpi-row" id="kpiRow"></div>
 
   <div class="tabs">
-    <div class="tab active" data-tab="geral">Visão Geral</div>
+    <div class="tab active" data-tab="inicio">Início</div>
     <div class="tab" data-tab="consultores">Consultores</div>
-    <div class="tab" data-tab="vendedores">Vendedores (Compras)</div>
+    <div class="tab" data-tab="avancado">Dados avançados</div>
     <div class="tab" data-tab="settings">Configurações</div>
   </div>
 
-  <div class="tabpanel active" id="tab-geral">
+  <div class="tabpanel active" id="tab-inicio">
+    <p class="hint">Conversões e meta de cada membro do time de compras no período selecionado.</p>
+    <div class="people-grid" id="inicioGrid"></div>
+  </div>
+
+  <div class="tabpanel" id="tab-consultores">
+    <p class="hint">Valor total vendido (atribuído pela tag de conversão) no período selecionado.</p>
+    <div class="people-grid" id="consultoresGrid"></div>
+  </div>
+
+  <div class="tabpanel" id="tab-avancado">
     <div class="grid-2">
       <div class="card">
         <h3>Vendas por mês</h3>
         <div class="chart-box"><canvas id="chartMonth"></canvas></div>
       </div>
       <div class="card">
-        <h3>Vendas por pipeline</h3>
-        <div class="chart-box"><canvas id="chartPipeline"></canvas></div>
+        <h3>Top vendedores por valor</h3>
+        <div class="chart-box"><canvas id="chartVendedores"></canvas></div>
       </div>
     </div>
-    <div class="card">
-      <h3>Top vendedores por valor</h3>
-      <div class="chart-box"><canvas id="chartVendedores"></canvas></div>
-    </div>
-  </div>
-
-  <div class="tabpanel" id="tab-consultores">
-    <p class="hint">Conversões e valores calculados a partir das vendas no período filtrado. A coluna "meta" vem do dashboard oficial dos consultores (aba principal da planilha).</p>
-    <div class="cons-grid" id="consGrid"></div>
-  </div>
-
-  <div class="tabpanel" id="tab-vendedores">
-    <p class="hint">KPI operacional do time de compras: volume gerado por cada vendedor (farmer cuida de recompra, hunter traz o primeiro projeto). Defina o papel de cada um — fica salvo para todo o time.</p>
-    <div class="card">
+    <div class="card" style="margin-bottom:14px;">
+      <h3>Ticket médio por consultor(a)</h3>
       <table>
-        <thead>
-          <tr><th>Vendedor</th><th>Papel</th><th>Nº vendas</th><th>Valor total</th><th>Ticket médio</th><th>% Consultoria</th><th>% Repedido</th><th>% Importação</th></tr>
-        </thead>
+        <thead><tr><th>Consultor(a)</th><th>Nº conversões</th><th>Valor total</th><th>Ticket médio</th></tr></thead>
+        <tbody id="ticketBody"></tbody>
+      </table>
+    </div>
+    <div class="card">
+      <h3>Vendedores — papel Farmer / Hunter</h3>
+      <table>
+        <thead><tr><th>Vendedor</th><th>Papel</th><th>Nº vendas</th><th>Valor total</th><th>Ticket médio</th></tr></thead>
         <tbody id="vendedoresBody"></tbody>
       </table>
     </div>
@@ -226,18 +183,18 @@
 
   <div class="tabpanel" id="tab-settings">
     <div class="card" style="margin-bottom:14px;">
-      <h3>Mesclar nomes de consultores</h3>
-      <p class="hint">A planilha de vendas tem várias grafias para a mesma pessoa (ex: "malu", "MALU", "chelo", "Rafael Chelo Texeira"). Nomes com a mesma grafia (ignorando maiúsculas/acentos) já são somados automaticamente. Use abaixo para juntar variações diferentes na mesma pessoa. Essa configuração é compartilhada com todo o time.</p>
+      <h3>Mapeamento de nomes do time de compras</h3>
+      <p class="hint">A planilha usa apelidos e grafias diferentes para as mesmas pessoas. Abaixo estão os mapeamentos ativos (padrão + os que você adicionar). Qualquer nome na planilha que não estiver mapeado para um destes 8 é ignorado no painel.</p>
       <div id="aliasRows"></div>
-      <button class="small-btn" id="btnAddAlias">+ adicionar mesclagem</button>
+      <button class="small-btn" id="btnAddAlias">+ adicionar mapeamento</button>
       <div id="unmappedWrap" style="margin-top:16px;">
-        <div style="font-size:12px;color:var(--muted);margin-bottom:6px;">Nomes encontrados na planilha (clique para copiar):</div>
+        <div style="font-size:12px;color:var(--muted);margin-bottom:6px;">Nomes reconhecidos atualmente (clique para copiar):</div>
         <div class="unmapped-list" id="unmappedList"></div>
       </div>
     </div>
     <div class="card">
       <h3>Papel dos vendedores (Farmer / Hunter)</h3>
-      <div id="rolesWrap"></div>
+      <div id="rolesWrap" class="hint">Defina em "Dados avançados" → tabela de vendedores.</div>
     </div>
   </div>
 
@@ -247,53 +204,68 @@
 const GOALS_CSV = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vR3O2y8LsZD7lnm1Hw_wfZoYJek_fjKfNjtjnxMix1KwD4pHcll1_J7MXCrl6Kc86DOdu_11YhJxxXa/pub?output=csv';
 const SALES_CSV = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vR3O2y8LsZD7lnm1Hw_wfZoYJek_fjKfNjtjnxMix1KwD4pHcll1_J7MXCrl6Kc86DOdu_11YhJxxXa/pub?gid=1071860344&single=true&output=csv';
 
+// The only people who should ever show up as "consultor de conversão".
+const APPROVED_CONSULTANTS = ['Laura','Malu','Beatriz Alcara','Rafael "Chelo" Teixeira','Mariana Estevão','Matheus Rocha','João Pedro','JP Brasil'];
+
+// Default nickname -> canonical mapping (normalized keys: lowercase, no accents).
+// Extendable/overridable from the Configurações tab.
+const DEFAULT_ALIASES = {
+  'laura':'Laura',
+  'malu':'Malu',
+  'maria barros':'Malu',
+  'beatriz':'Beatriz Alcara',
+  'beatriz alcara':'Beatriz Alcara',
+  'bea':'Beatriz Alcara',
+  'rafael':'Rafael "Chelo" Teixeira',
+  'chelo':'Rafael "Chelo" Teixeira',
+  'tchelo':'Rafael "Chelo" Teixeira',
+  'rafa':'Rafael "Chelo" Teixeira',
+  'rafael chelo texeira':'Rafael "Chelo" Teixeira',
+  'rafael "chelo" texeira':'Rafael "Chelo" Teixeira',
+  'mariana':'Mariana Estevão',
+  'mari':'Mariana Estevão',
+  'mariana estevao':'Mariana Estevão',
+  'matheus':'Matheus Rocha',
+  'matheus rocha':'Matheus Rocha',
+  'joao pedro':'João Pedro',
+  'jp':'João Pedro',
+  'jp brasil':'JP Brasil'
+};
+
 let state = {
-  sales: [],        // raw parsed sale rows {date, lead, empresa, vendedor, pipeline, valor, names:[canonical...], mesVenda}
-  goals: [],        // [{rawName, canonicalName, ...metrics}]
-  aliasMap: {},      // normKey -> canonical display name
-  vendorRoles: {},   // vendorNormKey -> 'Farmer'|'Hunter'|''
-  charts: {}
+  sales: [],
+  goals: [],
+  aliasMap: {},
+  vendorRoles: {},
+  charts: {},
+  defaultsApplied: false
 };
 
 // ---------- helpers ----------
-function stripAccents(s){
-  return s.normalize('NFD').replace(/[\u0300-\u036f]/g,'');
-}
-function normKey(s){
-  if(!s) return '';
-  return stripAccents(String(s)).toLowerCase().replace(/["']/g,'').replace(/\s+/g,' ').trim();
-}
-function titleCase(s){
-  return s.replace(/\w\S*/g, t => t.charAt(0).toUpperCase()+t.slice(1).toLowerCase());
-}
+function stripAccents(s){ return s.normalize('NFD').replace(/[\u0300-\u036f]/g,''); }
+function normKey(s){ if(!s) return ''; return stripAccents(String(s)).toLowerCase().replace(/["']/g,'').replace(/\s+/g,' ').trim(); }
 function parseBRNumber(s){
-  if(s===undefined || s===null || s==='') return 0;
-  let str = String(s).trim();
-  if(str==='') return 0;
+  if(s===undefined||s===null||s==='') return 0;
+  let str = String(s).trim(); if(str==='') return 0;
   str = str.replace(/\./g,'').replace(',','.');
-  const n = parseFloat(str);
-  return isNaN(n)?0:n;
+  const n = parseFloat(str); return isNaN(n)?0:n;
 }
-function fmtCurrency(n){
-  return 'R$ ' + n.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
-}
+function fmtCurrency(n){ return 'R$ ' + n.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}); }
 function fmtCurrencyShort(n){
   if(Math.abs(n)>=1000000) return 'R$ '+(n/1000000).toFixed(1)+'M';
   if(Math.abs(n)>=1000) return 'R$ '+(n/1000).toFixed(0)+'k';
   return 'R$ '+n.toFixed(0);
 }
+function toInputDate(d){ const y=d.getFullYear(),m=String(d.getMonth()+1).padStart(2,'0'),day=String(d.getDate()).padStart(2,'0'); return `${y}-${m}-${day}`; }
+function firstDayOfMonth(d){ return new Date(d.getFullYear(), d.getMonth(), 1); }
+function lastDayOfMonth(d){ return new Date(d.getFullYear(), d.getMonth()+1, 0); }
 
-// extract raw candidate names from a Tag cell
 function extractRawNames(raw){
   if(!raw) return [];
   raw = String(raw);
   let candidates = [];
   const nameMatches = [...raw.matchAll(/name:\s*([^\n\r]+)/gi)];
-  if(nameMatches.length){
-    candidates = nameMatches.map(m=>m[1]);
-  } else {
-    candidates = [raw];
-  }
+  candidates = nameMatches.length ? nameMatches.map(m=>m[1]) : [raw];
   let out = [];
   for(const c of candidates){
     const parts = c.split(/\n|\r| - |,/).map(p=>p.trim()).filter(Boolean);
@@ -306,115 +278,92 @@ function extractRawNames(raw){
   return out;
 }
 
+// returns canonical display name if recognized as one of the compras team, else null (discarded)
 function canonicalName(raw){
   const key = normKey(raw);
   if(!key) return null;
   if(state.aliasMap[key]) return state.aliasMap[key];
-  return titleCase(raw.trim());
+  if(DEFAULT_ALIASES[key]) return DEFAULT_ALIASES[key];
+  return null;
 }
 
-// ---------- fetching with fallback proxy ----------
+function avatarInitials(name){
+  const parts = name.replace(/["]/g,'').split(/\s+/).filter(Boolean);
+  if(parts.length===1) return parts[0].slice(0,2).toUpperCase();
+  return (parts[0][0]+parts[parts.length-1][0]).toUpperCase();
+}
+function avatarColor(name){
+  let hash=0; for(let i=0;i<name.length;i++) hash = name.charCodeAt(i) + ((hash<<5)-hash);
+  const hue = 38 + (hash % 25); // stays within gold/amber range
+  return `hsl(${hue} 85% 55%)`;
+}
+function avatarHTML(name, size){
+  const initials = avatarInitials(name);
+  const color = avatarColor(name);
+  return `<div class="avatar" style="width:${size}px;height:${size}px;background:${color};font-size:${size*0.36}px;">${initials}</div>`;
+}
+
+// ---------- fetching ----------
 async function fetchCSVText(url){
   try{
     const r = await fetch(url, {cache:'no-store'});
     if(!r.ok) throw new Error('status '+r.status);
     return await r.text();
   }catch(e){
-    // fallback proxy for CORS-restricted environments
     const proxied = 'https://api.allorigins.win/raw?url=' + encodeURIComponent(url);
     const r2 = await fetch(proxied, {cache:'no-store'});
     if(!r2.ok) throw new Error('proxy status '+r2.status);
     return await r2.text();
   }
 }
-
-function parseCSV(text){
-  const res = Papa.parse(text, {skipEmptyLines:false});
-  return res.data;
-}
+function parseCSV(text){ return Papa.parse(text, {skipEmptyLines:false}).data; }
 
 // ---------- goals sheet parsing (free-form layout) ----------
-const GOAL_KEYS = [
-  'CONVERSÔES','CONVERSOES','META','META DE SIMULAÇÕES','META DE SIMULACOES',
-  'SIMULAÇÕES ENTREGUES','SIMULACOES ENTREGUES','SIMULAÇÕES ENTREGUES MÊS','SIMULACOES ENTREGUES MES',
-  'SIMULAÇÕES ENTREGUES HOJE','SIMULACOES ENTREGUES HOJE','META DO SPRINT','ENTREGAS DO SPRINT',
-  'NOVAS ENVIADAS PARA A PROCESS','ALTERAÇÕES ENVIADAS A PROCESS','ALTERACOES ENVIADAS A PROCESS',
-  'NOVAS  ENTREGUES','NOVAS ENTREGUES','ALTERAÇÕES ENTREGUES','ALTERACOES ENTREGUES',
-  'NOVAS ONGOING','ALTERAÇÕES ONGOING','ALTERACOES ONGOING','DATA'
-];
-function isKnownKey(label){
-  if(!label) return false;
-  const up = stripAccents(label.trim().toUpperCase());
-  return GOAL_KEYS.some(k=>stripAccents(k.toUpperCase())===up);
-}
+const GOAL_KEYS = ['CONVERSÔES','CONVERSOES','META','META DE SIMULAÇÕES','META DE SIMULACOES','SIMULAÇÕES ENTREGUES','SIMULACOES ENTREGUES','SIMULAÇÕES ENTREGUES MÊS','SIMULACOES ENTREGUES MES','SIMULAÇÕES ENTREGUES HOJE','SIMULACOES ENTREGUES HOJE','META DO SPRINT','ENTREGAS DO SPRINT','NOVAS ENVIADAS PARA A PROCESS','ALTERAÇÕES ENVIADAS A PROCESS','ALTERACOES ENVIADAS A PROCESS','NOVAS  ENTREGUES','NOVAS ENTREGUES','ALTERAÇÕES ENTREGUES','ALTERACOES ENTREGUES','NOVAS ONGOING','ALTERAÇÕES ONGOING','ALTERACOES ONGOING','DATA'];
+function isKnownKey(label){ if(!label) return false; const up = stripAccents(label.trim().toUpperCase()); return GOAL_KEYS.some(k=>stripAccents(k.toUpperCase())===up); }
 function normalizeKeyLabel(label){
   const up = stripAccents(label.trim().toUpperCase());
   if(up.includes('CONVERS')) return 'conversoes';
   if(up==='META') return 'meta';
   if(up.includes('META DE SIMULA')) return 'metaSimulacoes';
-  if(up.includes('SIMULA') && up.includes('HOJE')) return 'simulacoesHoje';
-  if(up.includes('SIMULA') && (up.includes('MES')||up.includes('MÊS')||!up.includes('HOJE'))) return 'simulacoesMes';
-  if(up.includes('META DO SPRINT')) return 'metaSprint';
-  if(up.includes('ENTREGAS DO SPRINT')) return 'entregasSprint';
-  if(up.includes('NOVAS') && up.includes('ENVIADA')) return 'novasEnviadas';
-  if(up.includes('ALTERA') && up.includes('ENVIADA')) return 'alteracoesEnviadas';
-  if(up.includes('NOVAS') && up.includes('ENTREGUE')) return 'novasEntregues';
-  if(up.includes('ALTERA') && up.includes('ENTREGUE')) return 'alteracoesEntregues';
-  if(up.includes('NOVAS') && up.includes('ONGOING')) return 'novasOngoing';
-  if(up.includes('ALTERA') && up.includes('ONGOING')) return 'alteracoesOngoing';
   if(up==='DATA') return 'data';
   return null;
 }
+function parseBRNumberFromMoneyStr(s){ if(!s) return 0; let str = String(s).replace('R$','').trim(); str = str.replace(/\./g,'').replace(',','.'); const n = parseFloat(str); return isNaN(n)?0:n; }
 function parseGoalsBlock(rows, labelCol, valueCol){
-  const out = [];
-  let current = null;
+  const out = []; let current = null;
   for(const row of rows){
     const label = (row[labelCol]||'').toString().trim();
     const value = (row[valueCol]||'').toString().trim();
     if(!label) continue;
     if(!isKnownKey(label)){
-      // new person/section name
       if(current && current.name) out.push(current);
       let cleanName = label.replace(/^DASHBORD\s+/i,'').replace(/^DASHBOARD\s+/i,'').trim();
       current = {name: cleanName};
     } else {
       const key = normalizeKeyLabel(label);
       if(key && key!=='data' && current){
-        if(key==='meta'){
-          current[key] = parseBRNumberFromMoneyStr(value);
-        } else {
-          const n = parseFloat(String(value).replace(',','.'));
-          current[key] = isNaN(n) ? value : n;
-        }
+        if(key==='meta') current[key] = parseBRNumberFromMoneyStr(value);
+        else { const n = parseFloat(String(value).replace(',','.')); current[key] = isNaN(n)?value:n; }
       }
     }
   }
   if(current && current.name) out.push(current);
   return out;
 }
-function parseBRNumberFromMoneyStr(s){
-  if(!s) return 0;
-  let str = String(s).replace('R$','').trim();
-  str = str.replace(/\./g,'').replace(',','.');
-  const n = parseFloat(str);
-  return isNaN(n)?0:n;
-}
-
 function loadGoals(csvText){
   const rows = parseCSV(csvText);
   const left = parseGoalsBlock(rows, 5, 6);
   const right = parseGoalsBlock(rows, 11, 12);
   const all = [...left, ...right].filter(p=>p.name && p.name.length>1);
-  state.goals = all.map(g=>({...g, canonical: canonicalName(g.name)}));
+  state.goals = all.map(g=>({...g, canonical: canonicalName(g.name)})).filter(g=>g.canonical);
 }
 
 // ---------- sales sheet parsing ----------
 let yearTracker = {lastMonth:null, year:2025};
 function inferYear(monthNum){
-  if(monthNum==null || isNaN(monthNum)) return yearTracker.year;
-  if(yearTracker.lastMonth!==null && monthNum < yearTracker.lastMonth - 3){
-    yearTracker.year += 1;
-  }
+  if(monthNum==null||isNaN(monthNum)) return yearTracker.year;
+  if(yearTracker.lastMonth!==null && monthNum < yearTracker.lastMonth - 3) yearTracker.year += 1;
   yearTracker.lastMonth = monthNum;
   return yearTracker.year;
 }
@@ -424,20 +373,15 @@ function parseSaleDate(dateStr, mesVenda){
     const s = dateStr.trim();
     let match = s.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})$/);
     if(match){ d=+match[1]; m=+match[2]; y=+match[3]; }
-    else {
-      match = s.match(/^(\d{1,2})[\/\-](\d{1,2})$/);
-      if(match){ d=+match[1]; m=+match[2]; }
-    }
+    else { match = s.match(/^(\d{1,2})[\/\-](\d{1,2})$/); if(match){ d=+match[1]; m=+match[2]; } }
   }
   const mv = parseInt(mesVenda);
   if(m==null && !isNaN(mv)) m = mv;
   if(m==null) return null;
-  if(y==null) y = inferYear(m);
-  else { yearTracker.year = y; yearTracker.lastMonth = m; }
+  if(y==null) y = inferYear(m); else { yearTracker.year = y; yearTracker.lastMonth = m; }
   if(d==null) d=1;
   return new Date(y, m-1, d);
 }
-
 function loadSales(csvText){
   yearTracker = {lastMonth:null, year:2025};
   const rows = parseCSV(csvText);
@@ -446,10 +390,7 @@ function loadSales(csvText){
     const row = rows[i];
     if(!row || row.length<6) continue;
     const dateStr = row[0];
-    const lead = row[1];
-    const empresa = row[2];
     const vendedor = (row[3]||'').toString().trim();
-    const pipeline = (row[4]||'').toString().trim().replace(/[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}]/gu,'').trim();
     const valorRaw = row[5];
     const tagRaw = row[6];
     const mesVenda = row[7];
@@ -458,64 +399,73 @@ function loadSales(csvText){
     const valor = parseBRNumber(valorRaw);
     const rawNames = extractRawNames(tagRaw);
     const names = [...new Set(rawNames.map(canonicalName).filter(Boolean))];
-    sales.push({
-      date, lead, empresa, vendedor,
-      vendedorCanonical: canonicalName(vendedor) || vendedor,
-      pipeline: pipeline || '(sem pipeline)',
-      valor, names, mesVenda: parseInt(mesVenda)||null
-    });
+    sales.push({ date, vendedor, vendedorCanonical: vendedor, valor, names });
   }
   state.sales = sales.filter(s=>s.date);
 }
 
-// ---------- persistence (alias map + vendor roles) ----------
+// ---------- persistence ----------
 async function loadPersisted(){
-  try{
-    const r = await window.storage.get('consultor-alias-map', true);
-    if(r && r.value) state.aliasMap = JSON.parse(r.value);
-  }catch(e){}
-  try{
-    const r = await window.storage.get('vendedor-roles', true);
-    if(r && r.value) state.vendorRoles = JSON.parse(r.value);
-  }catch(e){}
+  try{ const r = await window.storage.get('consultor-alias-map-v2', true); if(r && r.value) state.aliasMap = JSON.parse(r.value); }catch(e){}
+  try{ const r = await window.storage.get('vendedor-roles', true); if(r && r.value) state.vendorRoles = JSON.parse(r.value); }catch(e){}
 }
-async function saveAliasMap(){
-  try{ await window.storage.set('consultor-alias-map', JSON.stringify(state.aliasMap), true); }catch(e){}
-}
-async function saveVendorRoles(){
-  try{ await window.storage.set('vendedor-roles', JSON.stringify(state.vendorRoles), true); }catch(e){}
-}
+async function saveAliasMap(){ try{ await window.storage.set('consultor-alias-map-v2', JSON.stringify(state.aliasMap), true); }catch(e){} }
+async function saveVendorRoles(){ try{ await window.storage.set('vendedor-roles', JSON.stringify(state.vendorRoles), true); }catch(e){} }
 
 // ---------- main data load ----------
 async function loadAllData(){
   document.getElementById('banners').innerHTML = '';
   document.getElementById('lastUpdated').textContent = 'atualizando…';
+
+  let goalsText, salesText;
   try{
     await loadPersisted();
-    const [goalsText, salesText] = await Promise.all([fetchCSVText(GOALS_CSV), fetchCSVText(SALES_CSV)]);
+    [goalsText, salesText] = await Promise.all([fetchCSVText(GOALS_CSV), fetchCSVText(SALES_CSV)]);
     loadGoals(goalsText);
     loadSales(salesText);
-    document.getElementById('lastUpdated').textContent = 'dados atualizados em ' + new Date().toLocaleString('pt-BR');
-    document.getElementById('dataSourceNote').textContent = state.sales.length + ' vendas carregadas';
+  }catch(e){
+    console.error(e);
+    document.getElementById('banners').innerHTML =
+      '<div class="banner err">Não consegui carregar os dados da planilha agora (' + (e.message||'erro de rede') +
+      '). Clique em "Atualizar dados" para tentar de novo.</div>';
+    document.getElementById('lastUpdated').textContent = 'falha ao atualizar';
+    return;
+  }
+
+  document.getElementById('lastUpdated').textContent = 'dados atualizados em ' + new Date().toLocaleString('pt-BR');
+  document.getElementById('dataSourceNote').textContent = state.sales.length + ' vendas carregadas';
+
+  try{
+    if(!state.defaultsApplied){
+      const now = new Date();
+      document.getElementById('fDateFrom').value = toInputDate(firstDayOfMonth(now));
+      document.getElementById('fDateTo').value = toInputDate(lastDayOfMonth(now));
+      state.defaultsApplied = true;
+    }
+    updateMonthPill();
     buildFilterOptions();
     renderAll();
   }catch(e){
     console.error(e);
     document.getElementById('banners').innerHTML =
-      '<div class="banner err">Não consegui carregar os dados da planilha agora (' + (e.message||'erro de rede') +
-      '). Isso pode acontecer se a rede deste navegador bloquear o acesso ao Google Sheets. Clique em "Atualizar dados" para tentar de novo, ou peça para o Claude atualizar o dashboard.</div>';
-    document.getElementById('lastUpdated').textContent = 'falha ao atualizar';
+      '<div class="banner err">Os dados foram carregados (' + state.sales.length + ' vendas), mas houve um erro ao desenhar o painel: ' +
+      (e.message||'erro desconhecido') + '. Avise o Claude com essa mensagem para corrigir.</div>';
   }
+}
+
+function updateMonthPill(){
+  const from = document.getElementById('fDateFrom').value;
+  const to = document.getElementById('fDateTo').value;
+  const now = new Date();
+  const isCurrentMonth = from===toInputDate(firstDayOfMonth(now)) && to===toInputDate(lastDayOfMonth(now));
+  document.getElementById('monthPill').textContent = isCurrentMonth ? 'mês atual' : 'período customizado';
 }
 
 // ---------- filters ----------
 function buildFilterOptions(){
   const vendedores = [...new Set(state.sales.map(s=>s.vendedorCanonical))].sort();
-  const consultores = [...new Set(state.sales.flatMap(s=>s.names))].sort();
-  const pipelines = [...new Set(state.sales.map(s=>s.pipeline))].sort();
   fillSelect('fVendedor', vendedores);
-  fillSelect('fConsultor', consultores);
-  fillSelect('fPipeline', pipelines);
+  fillSelect('fConsultor', APPROVED_CONSULTANTS);
 }
 function fillSelect(id, values){
   const el = document.getElementById(id);
@@ -533,23 +483,24 @@ function getFiltered(){
   const to = document.getElementById('fDateTo').value ? new Date(document.getElementById('fDateTo').value) : null;
   const vendSel = [...document.getElementById('fVendedor').selectedOptions].map(o=>o.value);
   const consSel = [...document.getElementById('fConsultor').selectedOptions].map(o=>o.value);
-  const pipeSel = [...document.getElementById('fPipeline').selectedOptions].map(o=>o.value);
   return state.sales.filter(s=>{
     if(from && s.date < from) return false;
     if(to){ const toEnd = new Date(to); toEnd.setHours(23,59,59,999); if(s.date > toEnd) return false; }
     if(vendSel.length && !vendSel.includes(s.vendedorCanonical)) return false;
     if(consSel.length && !s.names.some(n=>consSel.includes(n))) return false;
-    if(pipeSel.length && !pipeSel.includes(s.pipeline)) return false;
     return true;
   });
 }
 
 // ---------- rendering ----------
 function renderAll(){
+  updateMonthPill();
   const filtered = getFiltered();
   renderKPIs(filtered);
-  renderCharts(filtered);
+  renderInicio(filtered);
   renderConsultores(filtered);
+  renderTicketTable(filtered);
+  renderCharts(filtered);
   renderVendedores(filtered);
   renderSettings();
 }
@@ -563,7 +514,7 @@ function renderKPIs(filtered){
     {label:'Vendas totais', value: fmtCurrencyShort(total), sub: fmtCurrency(total)},
     {label:'Nº de negócios', value: count.toLocaleString('pt-BR'), sub:'no período filtrado'},
     {label:'Ticket médio', value: fmtCurrencyShort(avg), sub: fmtCurrency(avg)},
-    {label:'Conversões atribuídas', value: totalConversoes.toLocaleString('pt-BR'), sub:'somando todas as tags'}
+    {label:'Conversões atribuídas', value: totalConversoes.toLocaleString('pt-BR'), sub:'time de compras'}
   ];
   document.getElementById('kpiRow').innerHTML = kpis.map(k=>
     `<div class="kpi"><div class="label">${k.label}</div><div class="value">${k.value}</div><div class="sub">${k.sub}</div></div>`
@@ -572,8 +523,64 @@ function renderKPIs(filtered){
 
 function destroyChart(id){ if(state.charts[id]){ state.charts[id].destroy(); delete state.charts[id]; } }
 
+function computeConsultantStats(filtered){
+  const byConsultor = {};
+  for(const name of APPROVED_CONSULTANTS) byConsultor[name] = {count:0, valor:0};
+  for(const s of filtered){
+    for(const n of s.names){
+      if(!byConsultor[n]) byConsultor[n] = {count:0, valor:0};
+      byConsultor[n].count += 1;
+      byConsultor[n].valor += s.valor;
+    }
+  }
+  return byConsultor;
+}
+
+function renderInicio(filtered){
+  const stats = computeConsultantStats(filtered);
+  document.getElementById('inicioGrid').innerHTML = APPROVED_CONSULTANTS.map(name=>{
+    const s = stats[name] || {count:0, valor:0};
+    const goal = state.goals.find(g=>g.canonical===name);
+    const meta = goal && goal.meta ? fmtCurrencyShort(goal.meta) : '—';
+    return `<div class="people-card">
+      <div class="bar">${name}</div>
+      <div class="avatar-wrap">${avatarHTML(name, 64)}</div>
+      <div class="metrics">
+        <div class="row"><span>Conversões</span><span>${s.count}</span></div>
+        <div class="row"><span>Meta</span><span>${meta}</span></div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function renderConsultores(filtered){
+  const stats = computeConsultantStats(filtered);
+  document.getElementById('consultoresGrid').innerHTML = APPROVED_CONSULTANTS.map(name=>{
+    const s = stats[name] || {count:0, valor:0};
+    return `<div class="people-card">
+      <div class="bar">${name}</div>
+      <div class="avatar-wrap">${avatarHTML(name, 64)}</div>
+      <div class="big">
+        <div class="num">${fmtCurrencyShort(s.valor)}</div>
+        <div class="lbl">vendido no período</div>
+      </div>
+      <div class="metrics">
+        <div class="row"><span>Conversões</span><span>${s.count}</span></div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function renderTicketTable(filtered){
+  const stats = computeConsultantStats(filtered);
+  document.getElementById('ticketBody').innerHTML = APPROVED_CONSULTANTS.map(name=>{
+    const s = stats[name] || {count:0, valor:0};
+    const ticket = s.count ? s.valor/s.count : 0;
+    return `<tr><td>${name}</td><td>${s.count}</td><td>${fmtCurrency(s.valor)}</td><td>${fmtCurrency(ticket)}</td></tr>`;
+  }).join('');
+}
+
 function renderCharts(filtered){
-  // by month
   const byMonth = {};
   for(const s of filtered){
     const key = s.date.getFullYear()+'-'+String(s.date.getMonth()+1).padStart(2,'0');
@@ -584,24 +591,10 @@ function renderCharts(filtered){
   state.charts.month = new Chart(document.getElementById('chartMonth'), {
     type:'bar',
     data:{ labels: monthKeys, datasets:[{ label:'Vendas', data: monthKeys.map(k=>byMonth[k]), backgroundColor:'#FFC72C' }] },
-    options:{ responsive:true, maintainAspectRatio:false,
-      plugins:{legend:{display:false}},
+    options:{ responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}},
       scales:{ x:{ticks:{color:'#9a9a9f'},grid:{color:'#2a2a2e'}}, y:{ticks:{color:'#9a9a9f'},grid:{color:'#2a2a2e'}} } }
   });
 
-  // by pipeline
-  const byPipe = {};
-  for(const s of filtered) byPipe[s.pipeline] = (byPipe[s.pipeline]||0) + s.valor;
-  const pipeKeys = Object.keys(byPipe).sort((a,b)=>byPipe[b]-byPipe[a]);
-  destroyChart('pipeline');
-  state.charts.pipeline = new Chart(document.getElementById('chartPipeline'), {
-    type:'doughnut',
-    data:{ labels: pipeKeys, datasets:[{ data: pipeKeys.map(k=>byPipe[k]), backgroundColor:['#FFC72C','#3ecf7a','#5b9bef','#ef5b5b','#c77dff','#f2994a'] }] },
-    options:{ responsive:true, maintainAspectRatio:false,
-      plugins:{legend:{position:'bottom',labels:{color:'#f2f2f0',boxWidth:12,font:{size:11}}}} }
-  });
-
-  // top vendedores
   const byVend = {};
   for(const s of filtered) byVend[s.vendedorCanonical] = (byVend[s.vendedorCanonical]||0) + s.valor;
   const vendKeys = Object.keys(byVend).sort((a,b)=>byVend[b]-byVend[a]).slice(0,10);
@@ -609,66 +602,22 @@ function renderCharts(filtered){
   state.charts.vend = new Chart(document.getElementById('chartVendedores'), {
     type:'bar',
     data:{ labels: vendKeys, datasets:[{ label:'Vendas', data: vendKeys.map(k=>byVend[k]), backgroundColor:'#5b9bef' }] },
-    options:{ indexAxis:'y', responsive:true, maintainAspectRatio:false,
-      plugins:{legend:{display:false}},
+    options:{ indexAxis:'y', responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}},
       scales:{ x:{ticks:{color:'#9a9a9f'},grid:{color:'#2a2a2e'}}, y:{ticks:{color:'#9a9a9f'},grid:{display:false}} } }
   });
-}
-
-function renderConsultores(filtered){
-  const byConsultor = {};
-  for(const s of filtered){
-    for(const n of s.names){
-      if(!byConsultor[n]) byConsultor[n] = {count:0, valor:0};
-      byConsultor[n].count += 1;
-      byConsultor[n].valor += s.valor;
-    }
-  }
-  // merge with goals list even if 0 sales in period
-  const allNames = new Set([...Object.keys(byConsultor), ...state.goals.map(g=>g.canonical)]);
-  const rows = [...allNames].map(name=>{
-    const sales = byConsultor[name] || {count:0, valor:0};
-    const goal = state.goals.find(g=>g.canonical===name);
-    return { name, ...sales, goal };
-  }).sort((a,b)=> b.valor - a.valor);
-
-  document.getElementById('consGrid').innerHTML = rows.map(r=>{
-    const meta = r.goal && r.goal.meta ? r.goal.meta : null;
-    const pct = meta ? Math.min(100, Math.round((r.valor/meta)*100)) : null;
-    let extra = '';
-    if(r.goal){
-      if(r.goal.metaSimulacoes!=null) extra += `<div class="metric-row"><span>Meta simulações</span><b>${r.goal.metaSimulacoes}</b></div>`;
-      if(r.goal.simulacoesMes!=null) extra += `<div class="metric-row"><span>Simulações no mês</span><b>${r.goal.simulacoesMes}</b></div>`;
-      if(r.goal.metaSprint!=null) extra += `<div class="metric-row"><span>Meta do sprint</span><b>${r.goal.metaSprint}</b></div>`;
-      if(r.goal.entregasSprint!=null) extra += `<div class="metric-row"><span>Entregas do sprint</span><b>${r.goal.entregasSprint}</b></div>`;
-    }
-    return `<div class="cons-card">
-      <div class="name">${r.name} <span class="badge">${r.count} conv.</span></div>
-      <div class="metric-row"><span>Valor gerado</span><b>${fmtCurrencyShort(r.valor)}</b></div>
-      ${meta!=null ? `<div class="metric-row"><span>Meta (R$)</span><b>${fmtCurrencyShort(meta)}</b></div>
-      <div class="progress"><div style="width:${pct}%"></div></div>
-      <div class="metric-row"><span>${pct}% da meta</span></div>` : ''}
-      ${extra}
-    </div>`;
-  }).join('');
 }
 
 function renderVendedores(filtered){
   const byVend = {};
   for(const s of filtered){
-    if(!byVend[s.vendedorCanonical]) byVend[s.vendedorCanonical] = {count:0, valor:0, consultoria:0, repedido:0, importacao:0};
-    const v = byVend[s.vendedorCanonical];
-    v.count += 1; v.valor += s.valor;
-    const p = s.pipeline.toUpperCase();
-    if(p.includes('CONSULTORIA')) v.consultoria += s.valor;
-    else if(p.includes('REPEDIDO')) v.repedido += s.valor;
-    else if(p.includes('IMPORTA')) v.importacao += s.valor;
+    if(!byVend[s.vendedorCanonical]) byVend[s.vendedorCanonical] = {count:0, valor:0};
+    byVend[s.vendedorCanonical].count += 1;
+    byVend[s.vendedorCanonical].valor += s.valor;
   }
   const rows = Object.entries(byVend).sort((a,b)=>b[1].valor - a[1].valor);
   document.getElementById('vendedoresBody').innerHTML = rows.map(([name,v])=>{
     const key = normKey(name);
     const role = state.vendorRoles[key] || '';
-    const pct = (x)=> v.valor ? Math.round((x/v.valor)*100)+'%' : '0%';
     return `<tr>
       <td>${name}</td>
       <td><select class="role-select" data-vendor="${key}">
@@ -679,12 +628,8 @@ function renderVendedores(filtered){
       <td>${v.count}</td>
       <td>${fmtCurrency(v.valor)}</td>
       <td>${fmtCurrency(v.count?v.valor/v.count:0)}</td>
-      <td>${pct(v.consultoria)}</td>
-      <td>${pct(v.repedido)}</td>
-      <td>${pct(v.importacao)}</td>
     </tr>`;
   }).join('');
-
   document.querySelectorAll('.role-select').forEach(sel=>{
     sel.addEventListener('change', async (e)=>{
       state.vendorRoles[e.target.dataset.vendor] = e.target.value;
@@ -694,57 +639,51 @@ function renderVendedores(filtered){
 }
 
 function renderSettings(){
-  // alias rows
   const wrap = document.getElementById('aliasRows');
   wrap.innerHTML = '';
-  const entries = Object.entries(state.aliasMap);
-  for(const [key, canonical] of entries){
-    addAliasRow(key, canonical);
-  }
-  // unmapped names (raw distinct names seen, to help user copy exact spelling)
+  for(const [key, canonical] of Object.entries(DEFAULT_ALIASES)) addAliasRow(key, canonical, true);
+  for(const [key, canonical] of Object.entries(state.aliasMap)) addAliasRow(key, canonical, false);
+
   const allRaw = new Set();
-  for(const s of state.sales){
-    // we already canonicalized; show canonical list for reference
-    s.names.forEach(n=>allRaw.add(n));
-  }
+  for(const s of state.sales) s.names.forEach(n=>allRaw.add(n));
   document.getElementById('unmappedList').innerHTML = [...allRaw].sort().map(n=>
     `<span class="unmapped-chip" onclick="navigator.clipboard && navigator.clipboard.writeText('${n.replace(/'/g,"\\'")}')" title="clique para copiar">${n}</span>`
   ).join('');
 }
 
-function addAliasRow(fromVal='', toVal=''){
+function addAliasRow(fromVal='', toVal='', isDefault=false){
   const wrap = document.getElementById('aliasRows');
   const row = document.createElement('div');
   row.className = 'alias-row';
   row.innerHTML = `
-    <input type="text" placeholder="nome como aparece na planilha (ex: chelo)" value="${fromVal}">
-    <input type="text" placeholder="nome correto/unificado (ex: Rafael \\"Chelo\\" Teixeira)" value="${toVal}">
-    <button class="small-btn danger">remover</button>
+    <input type="text" placeholder="apelido/variação (ex: chelo)" value="${fromVal}" ${isDefault?'disabled':''}>
+    <input type="text" placeholder="nome unificado" value="${toVal}" ${isDefault?'disabled':''}>
+    <button class="small-btn danger" ${isDefault?'disabled title="mapeamento padrão"':''}>${isDefault?'padrão':'remover'}</button>
   `;
-  const [fromInput, toInput] = row.querySelectorAll('input');
-  const removeBtn = row.querySelector('button');
-  async function commit(){
-    // remove old key if changed
-    const newKey = normKey(fromInput.value);
-    if(!newKey) return;
-    state.aliasMap[newKey] = toInput.value.trim();
-    await saveAliasMap();
+  if(!isDefault){
+    const [fromInput, toInput] = row.querySelectorAll('input');
+    const removeBtn = row.querySelector('button');
+    async function commit(){
+      const newKey = normKey(fromInput.value);
+      if(!newKey) return;
+      state.aliasMap[newKey] = toInput.value.trim();
+      await saveAliasMap();
+    }
+    fromInput.addEventListener('change', commit);
+    toInput.addEventListener('change', commit);
+    removeBtn.addEventListener('click', async ()=>{
+      const key = normKey(fromInput.value);
+      if(key) delete state.aliasMap[key];
+      row.remove();
+      await saveAliasMap();
+      await loadAllData();
+    });
   }
-  fromInput.addEventListener('change', commit);
-  toInput.addEventListener('change', commit);
-  removeBtn.addEventListener('click', async ()=>{
-    const key = normKey(fromInput.value);
-    if(key) delete state.aliasMap[key];
-    row.remove();
-    await saveAliasMap();
-    await loadAllData();
-  });
   wrap.appendChild(row);
 }
 
-document.getElementById('btnAddAlias').addEventListener('click', ()=> addAliasRow());
+document.getElementById('btnAddAlias').addEventListener('click', ()=> addAliasRow('', '', false));
 
-// ---------- tabs ----------
 document.querySelectorAll('.tab').forEach(tab=>{
   tab.addEventListener('click', ()=>{
     document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
@@ -754,20 +693,18 @@ document.querySelectorAll('.tab').forEach(tab=>{
   });
 });
 
-// ---------- filter events ----------
 ['fDateFrom','fDateTo'].forEach(id=>document.getElementById(id).addEventListener('change', renderAll));
-['fVendedor','fConsultor','fPipeline'].forEach(id=>document.getElementById(id).addEventListener('change', renderAll));
+['fVendedor','fConsultor'].forEach(id=>document.getElementById(id).addEventListener('change', renderAll));
 document.getElementById('btnClearFilters').addEventListener('click', ()=>{
-  document.getElementById('fDateFrom').value='';
-  document.getElementById('fDateTo').value='';
-  ['fVendedor','fConsultor','fPipeline'].forEach(id=>{
-    [...document.getElementById(id).options].forEach(o=>o.selected=false);
-  });
+  const now = new Date();
+  document.getElementById('fDateFrom').value = toInputDate(firstDayOfMonth(now));
+  document.getElementById('fDateTo').value = toInputDate(lastDayOfMonth(now));
+  [...document.getElementById('fVendedor').options].forEach(o=>o.selected=false);
+  [...document.getElementById('fConsultor').options].forEach(o=>o.selected=false);
   renderAll();
 });
 document.getElementById('btnRefresh').addEventListener('click', loadAllData);
 
-// initial load: re-render settings after data ready (aliases need sales names)
 loadAllData();
 </script>
 </body>
