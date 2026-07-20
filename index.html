@@ -17,7 +17,7 @@
   .wrap{max-width:1280px;margin:0 auto;padding:18px 20px 60px;}
   header.top{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;padding:14px 18px;background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);margin-bottom:16px;}
   .brand{display:flex;align-items:center;gap:12px;}
-  .logo{font-weight:900;font-size:22px;letter-spacing:-0.5px;background:var(--gold);color:#0b0b0c;padding:6px 10px;border-radius:6px;}
+  .logo{font-weight:900;font-size:22px;letter-spacing:-0.5px;background:var(--gold);color:#0b0b0c;padding:6px 10px;border-radius:6px;cursor:pointer;user-select:none;}
   .brand h1{font-size:15px;margin:0;font-weight:700;color:var(--text);}
   .brand .sub{font-size:11px;color:var(--muted);margin-top:2px;}
   .top-actions{display:flex;align-items:center;gap:10px;font-size:12px;color:var(--muted);}
@@ -103,10 +103,6 @@
   <div class="filters">
     <div class="filter-group"><label>De</label><input type="date" id="fDateFrom"></div>
     <div class="filter-group"><label>Até</label><input type="date" id="fDateTo"></div>
-    <div class="filter-group">
-      <label>Consultor(a) compras</label>
-      <select id="fConsultor" multiple></select>
-    </div>
     <span class="month-pill" id="monthPill"></span>
     <button class="filter-clear" id="btnClearFilters">voltar para o mês atual</button>
   </div>
@@ -138,6 +134,10 @@
   </div>
 
   <div class="tabpanel" id="tab-avancado">
+    <div class="card">
+      <h3>Vendas por time</h3>
+      <div id="teamTotalsWrap"></div>
+    </div>
     <div class="grid-2">
       <div class="card">
         <h3>Vendas por mês</h3>
@@ -509,7 +509,7 @@ function updateMonthPill(){
 }
 
 // ---------- filters ----------
-function buildFilterOptions(){ fillSelect('fConsultor', APPROVED_CONSULTANTS); }
+function buildFilterOptions(){ /* no more people filter — date range only */ }
 function fillSelect(id, values){
   const el = document.getElementById(id);
   const prevSelected = new Set([...el.selectedOptions].map(o=>o.value));
@@ -524,11 +524,9 @@ function fillSelect(id, values){
 function getFiltered(){
   const from = document.getElementById('fDateFrom').value ? new Date(document.getElementById('fDateFrom').value) : null;
   const to = document.getElementById('fDateTo').value ? new Date(document.getElementById('fDateTo').value) : null;
-  const consSel = [...document.getElementById('fConsultor').selectedOptions].map(o=>o.value);
   return state.sales.filter(s=>{
     if(from && s.date < from) return false;
     if(to){ const toEnd = new Date(to); toEnd.setHours(23,59,59,999); if(s.date > toEnd) return false; }
-    if(consSel.length && !s.names.some(n=>consSel.includes(n))) return false;
     return true;
   });
 }
@@ -568,6 +566,7 @@ function renderAll(){
   renderCompras(filtered);
   renderHF(filtered);
   renderTicketTable(filtered);
+  renderTeamTotals(filtered);
   renderOutros(filtered);
   renderCharts(filtered);
   renderSettings();
@@ -577,7 +576,7 @@ function renderKPIs(filtered){
   const total = filtered.reduce((a,s)=>a+s.valor,0);
   const count = filtered.length;
   const avg = count ? total/count : 0;
-  const totalConversoes = filtered.reduce((a,s)=>a+s.names.length,0);
+  const totalConversoes = filtered.filter(s=>s.valor>=0).reduce((a,s)=>a+s.names.length,0);
   const kpis = [
     {label:'Vendas totais', value: fmtCurrencyShort(total), sub: fmtCurrency(total)},
     {label:'Nº de negócios', value: count.toLocaleString('pt-BR'), sub:'no período filtrado'},
@@ -591,7 +590,10 @@ function destroyChart(id){ if(state.charts[id]){ state.charts[id].destroy(); del
 
 function computeConsultantStats(filtered){
   const byC = {}; for(const n of APPROVED_CONSULTANTS) byC[n] = {count:0, valor:0};
-  for(const s of filtered) for(const n of s.names){ if(!byC[n]) byC[n]={count:0,valor:0}; byC[n].count++; byC[n].valor+=s.valor; }
+  for(const s of filtered){
+    if(s.valor < 0) continue; // negative/estorno values don't count for Compras, even if tagged
+    for(const n of s.names){ if(!byC[n]) byC[n]={count:0,valor:0}; byC[n].count++; byC[n].valor+=s.valor; }
+  }
   return byC;
 }
 function computeVendorStats(filtered, group){
@@ -651,7 +653,32 @@ function renderOutros(filtered){
   document.getElementById('outrosBody').innerHTML = rows.map(([name,v])=>`<tr><td>${name}</td><td>${v.count}</td><td>${fmtCurrency(v.valor)}</td></tr>`).join('') || '<tr><td colspan="3" style="color:var(--muted);">Nenhum vendedor não classificado no período.</td></tr>';
 }
 
+function renderTeamTotals(filtered){
+  const groups = [['hunter','Hunters'],['farmer','Farmers'],['xp','XP']];
+  let totalCount=0, totalValor=0;
+  let html = '<table><thead><tr><th>Time</th><th>Nº vendas</th><th>Valor total</th><th>Ticket médio</th></tr></thead><tbody>';
+  for(const [g,label] of groups){
+    const stats = computeVendorStats(filtered, g);
+    const count = Object.values(stats).reduce((a,s)=>a+s.count,0);
+    const valor = Object.values(stats).reduce((a,s)=>a+s.valor,0);
+    totalCount += count; totalValor += valor;
+    const ticket = count ? valor/count : 0;
+    html += `<tr><td>${label}</td><td>${count}</td><td>${fmtCurrency(valor)}</td><td>${fmtCurrency(ticket)}</td></tr>`;
+  }
+  const totalTicket = totalCount ? totalValor/totalCount : 0;
+  html += `<tr style="font-weight:800;color:var(--gold);"><td>Total geral</td><td>${totalCount}</td><td>${fmtCurrency(totalValor)}</td><td>${fmtCurrency(totalTicket)}</td></tr>`;
+  html += '</tbody></table>';
+  document.getElementById('teamTotalsWrap').innerHTML = html;
+}
+
 function renderCharts(filtered){
+  if(typeof Chart === 'undefined'){
+    console.warn('Chart.js não carregou — pulando gráficos, o resto do painel continua normal.');
+    document.querySelectorAll('.chart-box').forEach(box=>{
+      box.innerHTML = '<div style="color:var(--muted);font-size:12px;padding:20px;text-align:center;">Gráficos indisponíveis no momento (biblioteca não carregou). O resto do painel funciona normalmente — tente atualizar a página.</div>';
+    });
+    return;
+  }
   const byMonth = {};
   for(const s of filtered){ const key = s.date.getFullYear()+'-'+String(s.date.getMonth()+1).padStart(2,'0'); byMonth[key]=(byMonth[key]||0)+s.valor; }
   const monthKeys = Object.keys(byMonth).sort();
@@ -756,15 +783,23 @@ document.querySelectorAll('.tab').forEach(tab=>{
 });
 
 ['fDateFrom','fDateTo'].forEach(id=>document.getElementById(id).addEventListener('change', renderAll));
-document.getElementById('fConsultor').addEventListener('change', renderAll);
 document.getElementById('btnClearFilters').addEventListener('click', ()=>{
   const now = new Date();
   document.getElementById('fDateFrom').value = toInputDate(firstDayOfMonth(now));
   document.getElementById('fDateTo').value = toInputDate(lastDayOfMonth(now));
-  [...document.getElementById('fConsultor').options].forEach(o=>o.selected=false);
   renderAll();
 });
 document.getElementById('btnRefresh').addEventListener('click', loadAllData);
+document.querySelector('.logo').addEventListener('click', ()=>{
+  const now = new Date();
+  document.getElementById('fDateFrom').value = toInputDate(firstDayOfMonth(now));
+  document.getElementById('fDateTo').value = toInputDate(lastDayOfMonth(now));
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.tabpanel').forEach(p=>p.classList.remove('active'));
+  document.querySelector('.tab[data-tab="compras"]').classList.add('active');
+  document.getElementById('tab-compras').classList.add('active');
+  renderAll();
+});
 
 loadAllData();
 </script>
