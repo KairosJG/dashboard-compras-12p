@@ -4,8 +4,38 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>12P — Dashboard Compras</title>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/chart.js/4.4.3/chart.umd.min.js"></script>
+<!-- PapaParse and Chart.js are loaded dynamically below with CDN fallbacks,
+     since some networks block cdnjs.cloudflare.com specifically. -->
+<script>
+function loadScriptWithFallback(urls){
+  return new Promise((resolve, reject)=>{
+    let i = 0;
+    function tryNext(){
+      if(i >= urls.length){ reject(new Error('todas as fontes falharam')); return; }
+      const s = document.createElement('script');
+      s.src = urls[i++];
+      s.onload = ()=>resolve();
+      s.onerror = ()=>tryNext();
+      document.head.appendChild(s);
+    }
+    tryNext();
+  });
+}
+const PAPA_SOURCES = [
+  'https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js',
+  'https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js',
+  'https://unpkg.com/papaparse@5.4.1/papaparse.min.js'
+];
+const CHART_SOURCES = [
+  'https://cdnjs.cloudflare.com/ajax/libs/chart.js/4.4.3/chart.umd.min.js',
+  'https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js',
+  'https://unpkg.com/chart.js@4.4.3/dist/chart.umd.min.js'
+];
+window._libsReady = Promise.allSettled([
+  loadScriptWithFallback(PAPA_SOURCES),
+  loadScriptWithFallback(CHART_SOURCES)
+]);
+</script>
 <style>
   :root{
     --bg:#0b0b0c; --panel:#151517; --panel-2:#1c1c1f; --line:#2a2a2e;
@@ -61,7 +91,7 @@
   .people-card .big{text-align:center;padding:4px 14px 10px;}
   .people-card .big .num{font-size:20px;font-weight:800;color:var(--gold);}
   .people-card .big .lbl{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.03em;margin-top:2px;}
-  .progress{height:6px;background:var(--panel);border-radius:3px;overflow:hidden;margin:0 14px 12px;}
+  .progress{height:6px;background:var(--panel);border-radius:3px;overflow:hidden;}
   .progress > div{height:100%;}
   table{width:100%;border-collapse:collapse;font-size:13px;}
   th,td{padding:8px 10px;text-align:left;border-bottom:1px solid var(--line);}
@@ -617,7 +647,10 @@ function peopleCard(name, stats, metaVal, opts){
     <div class="bar">${name}</div>
     <div class="avatar-wrap">${avatarHTML(name,64)}</div>
     <div class="big"><div class="num">${fmtCurrencyShort(stats.valor)}</div><div class="lbl">vendido no período</div></div>
-    ${metaVal!=null ? `<div class="progress"><div style="width:${pctClamped}%;background:${barColor};"></div></div>` : ''}
+    ${metaVal!=null ? `<div style="display:flex;align-items:center;gap:8px;margin:0 14px 12px;">
+      <div class="progress" style="flex:1;"><div style="width:${pctClamped}%;background:${barColor};"></div></div>
+      <span style="font-size:11px;font-weight:800;color:${barColor};min-width:36px;text-align:right;">${pct}%</span>
+    </div>` : ''}
     <div class="metrics">
       ${opts.showConversoes ? `<div class="row"><span>Conversões</span><span>${stats.count}</span></div>` : `<div class="row"><span>Nº vendas</span><span>${stats.count}</span></div>`}
       ${metaVal!=null ? `<div class="row"><span>Meta do mês</span><span>${fmtCurrencyShort(metaVal)}</span></div><div class="row"><span>% da meta atingido</span><span>${pct}%</span></div>${paceRow}` : `<div class="row"><span>Meta do mês</span><span>não definida</span></div>`}
@@ -801,7 +834,7 @@ document.querySelector('.logo').addEventListener('click', ()=>{
   renderAll();
 });
 
-loadAllData();
+window._libsReady.then(()=>{ loadAllData(); });
 </script>
 </body>
 </html>
