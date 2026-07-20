@@ -8,22 +8,13 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/chart.js/4.4.3/chart.umd.min.js"></script>
 <style>
   :root{
-    --bg:#0b0b0c;
-    --panel:#151517;
-    --panel-2:#1c1c1f;
-    --line:#2a2a2e;
-    --gold:#FFC72C;
-    --gold-dim:#8a6b12;
-    --text:#f2f2f0;
-    --muted:#9a9a9f;
-    --good:#3ecf7a;
-    --bad:#ef5b5b;
-    --radius:10px;
+    --bg:#0b0b0c; --panel:#151517; --panel-2:#1c1c1f; --line:#2a2a2e;
+    --gold:#FFC72C; --gold-dim:#8a6b12; --text:#f2f2f0; --muted:#9a9a9f;
+    --good:#3ecf7a; --bad:#ef5b5b; --radius:10px;
   }
   *{box-sizing:border-box;}
   body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;}
   .wrap{max-width:1280px;margin:0 auto;padding:18px 20px 60px;}
-
   header.top{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;padding:14px 18px;background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);margin-bottom:16px;}
   .brand{display:flex;align-items:center;gap:12px;}
   .logo{font-weight:900;font-size:22px;letter-spacing:-0.5px;background:var(--gold);color:#0b0b0c;padding:6px 10px;border-radius:6px;}
@@ -32,37 +23,32 @@
   .top-actions{display:flex;align-items:center;gap:10px;font-size:12px;color:var(--muted);}
   button.btn{background:var(--gold);color:#0b0b0c;border:none;font-weight:700;padding:8px 14px;border-radius:8px;cursor:pointer;font-size:13px;}
   button.btn.secondary{background:transparent;color:var(--text);border:1px solid var(--line);}
-
   .banner{padding:10px 14px;border-radius:8px;font-size:13px;margin-bottom:16px;border:1px solid var(--line);}
   .banner.err{background:#2a1414;border-color:#5a2323;color:#ffb4b4;}
-
   .filters{display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:14px;margin-bottom:16px;}
   .filter-group{display:flex;flex-direction:column;gap:4px;min-width:150px;}
   .filter-group label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.03em;}
-  select, input[type=date]{background:var(--panel-2);color:var(--text);border:1px solid var(--line);border-radius:6px;padding:7px 8px;font-size:13px;min-width:150px;}
+  select, input[type=date], input[type=text], input[type=password], input[type=number]{background:var(--panel-2);color:var(--text);border:1px solid var(--line);border-radius:6px;padding:7px 8px;font-size:13px;}
+  select, input[type=date]{min-width:150px;}
   select[multiple]{min-height:70px;}
   .filter-clear{font-size:12px;color:var(--gold);cursor:pointer;background:none;border:none;text-decoration:underline;padding:0;}
   .month-pill{font-size:11px;color:var(--gold);background:#2a220c;border:1px solid var(--gold-dim);border-radius:20px;padding:4px 10px;}
-
   .kpi-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px;margin-bottom:18px;}
   .kpi{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:16px;}
   .kpi .label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;margin-bottom:6px;}
   .kpi .value{font-size:24px;font-weight:800;color:var(--gold);}
   .kpi .sub{font-size:11px;color:var(--muted);margin-top:4px;}
-
   .tabs{display:flex;gap:6px;margin-bottom:16px;border-bottom:1px solid var(--line);flex-wrap:wrap;}
   .tab{padding:10px 16px;font-size:13px;font-weight:700;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;}
   .tab.active{color:var(--gold);border-color:var(--gold);}
   .tabpanel{display:none;}
   .tabpanel.active{display:block;}
-
   .grid-2{display:grid;grid-template-columns:1.3fr 1fr;gap:14px;margin-bottom:14px;}
   @media (max-width:900px){.grid-2{grid-template-columns:1fr;}}
-  .card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:16px;}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:16px;margin-bottom:14px;}
   .card h3{margin:0 0 12px;font-size:13px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;}
   .chart-box{position:relative;height:260px;}
-
-  /* people cards (sheet-style) */
+  .section-title{font-size:13px;font-weight:800;color:var(--gold);text-transform:uppercase;letter-spacing:.05em;margin:20px 0 10px;}
   .people-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:14px;}
   .people-card{background:var(--panel-2);border:1px solid var(--line);border-radius:12px;overflow:hidden;}
   .people-card .bar{background:var(--gold);color:#0b0b0c;font-weight:800;font-size:13px;text-align:center;padding:9px 6px;letter-spacing:.02em;}
@@ -73,16 +59,15 @@
   .people-card .metrics .row:last-child{border-bottom:none;}
   .people-card .metrics .row span:first-child{color:var(--muted);}
   .people-card .metrics .row span:last-child{font-weight:700;color:var(--gold);text-align:right;}
-  .people-card .big{text-align:center;padding:0 14px 16px;}
-  .people-card .big .num{font-size:22px;font-weight:800;color:var(--gold);}
+  .people-card .big{text-align:center;padding:4px 14px 10px;}
+  .people-card .big .num{font-size:20px;font-weight:800;color:var(--gold);}
   .people-card .big .lbl{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.03em;margin-top:2px;}
-
+  .progress{height:6px;background:var(--panel);border-radius:3px;overflow:hidden;margin:0 14px 12px;}
+  .progress > div{height:100%;background:var(--gold);}
   table{width:100%;border-collapse:collapse;font-size:13px;}
   th,td{padding:8px 10px;text-align:left;border-bottom:1px solid var(--line);}
   th{color:var(--muted);font-weight:700;font-size:11px;text-transform:uppercase;letter-spacing:.03em;}
   tr:hover td{background:var(--panel-2);}
-  select.role-select{min-width:120px;padding:4px 6px;font-size:12px;}
-
   .alias-row{display:grid;grid-template-columns:1fr 1fr auto;gap:8px;align-items:center;margin-bottom:8px;}
   .alias-row input{width:100%;}
   .small-btn{background:var(--panel-2);border:1px solid var(--line);color:var(--text);border-radius:6px;padding:6px 10px;font-size:12px;cursor:pointer;}
@@ -90,7 +75,11 @@
   .hint{font-size:12px;color:var(--muted);margin:6px 0 14px;line-height:1.5;}
   .unmapped-list{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;}
   .unmapped-chip{font-size:11px;background:var(--panel-2);border:1px solid var(--line);border-radius:20px;padding:3px 10px;color:var(--muted);cursor:pointer;}
-
+  .meta-row{display:grid;grid-template-columns:1fr 160px;gap:10px;align-items:center;padding:6px 0;border-bottom:1px solid var(--line);}
+  .meta-row:last-child{border-bottom:none;}
+  .lock-box{display:flex;gap:8px;align-items:center;margin-bottom:14px;flex-wrap:wrap;}
+  .idea-list{font-size:13px;line-height:1.9;color:var(--text);}
+  .idea-list li{margin-bottom:4px;}
   ::-webkit-scrollbar{width:8px;height:8px;}
   ::-webkit-scrollbar-thumb{background:var(--line);border-radius:4px;}
 </style>
@@ -115,20 +104,10 @@
   <div id="banners"></div>
 
   <div class="filters">
+    <div class="filter-group"><label>De</label><input type="date" id="fDateFrom"></div>
+    <div class="filter-group"><label>Até</label><input type="date" id="fDateTo"></div>
     <div class="filter-group">
-      <label>De</label>
-      <input type="date" id="fDateFrom">
-    </div>
-    <div class="filter-group">
-      <label>Até</label>
-      <input type="date" id="fDateTo">
-    </div>
-    <div class="filter-group">
-      <label>Vendedor</label>
-      <select id="fVendedor" multiple></select>
-    </div>
-    <div class="filter-group">
-      <label>Consultor(a) de conversão</label>
+      <label>Consultor(a) compras</label>
       <select id="fConsultor" multiple></select>
     </div>
     <span class="month-pill" id="monthPill"></span>
@@ -138,20 +117,24 @@
   <div class="kpi-row" id="kpiRow"></div>
 
   <div class="tabs">
-    <div class="tab active" data-tab="inicio">Início</div>
-    <div class="tab" data-tab="consultores">Consultores</div>
+    <div class="tab active" data-tab="compras">Compras</div>
+    <div class="tab" data-tab="hf">Hunters &amp; Farmers</div>
     <div class="tab" data-tab="avancado">Dados avançados</div>
     <div class="tab" data-tab="settings">Configurações</div>
   </div>
 
-  <div class="tabpanel active" id="tab-inicio">
-    <p class="hint">Conversões e meta de cada membro do time de compras no período selecionado.</p>
-    <div class="people-grid" id="inicioGrid"></div>
+  <div class="tabpanel active" id="tab-compras">
+    <p class="hint">Time de compras — conversões, valor gerado e meta mensal de cada um.</p>
+    <div class="people-grid" id="comprasGrid"></div>
   </div>
 
-  <div class="tabpanel" id="tab-consultores">
-    <p class="hint">Valor total vendido (atribuído pela tag de conversão) no período selecionado.</p>
-    <div class="people-grid" id="consultoresGrid"></div>
+  <div class="tabpanel" id="tab-hf">
+    <div class="section-title">Hunters</div>
+    <p class="hint">Trazem o primeiro projeto do cliente.</p>
+    <div class="people-grid" id="huntersGrid"></div>
+    <div class="section-title">Farmers</div>
+    <p class="hint">Cuidam da recompra / carteira ativa.</p>
+    <div class="people-grid" id="farmersGrid"></div>
   </div>
 
   <div class="tabpanel" id="tab-avancado">
@@ -161,40 +144,65 @@
         <div class="chart-box"><canvas id="chartMonth"></canvas></div>
       </div>
       <div class="card">
-        <h3>Top vendedores por valor</h3>
-        <div class="chart-box"><canvas id="chartVendedores"></canvas></div>
+        <h3>Meta vs. realizado no mês — Hunters &amp; Farmers</h3>
+        <div class="chart-box"><canvas id="chartMetaReal"></canvas></div>
       </div>
     </div>
-    <div class="card" style="margin-bottom:14px;">
-      <h3>Ticket médio por consultor(a)</h3>
+    <div class="card">
+      <h3>Ticket médio — Compras</h3>
       <table>
         <thead><tr><th>Consultor(a)</th><th>Nº conversões</th><th>Valor total</th><th>Ticket médio</th></tr></thead>
         <tbody id="ticketBody"></tbody>
       </table>
     </div>
     <div class="card">
-      <h3>Vendedores — papel Farmer / Hunter</h3>
+      <h3>Vendedores não classificados</h3>
+      <p class="hint">Apareceram na planilha mas ainda não estão em nenhuma lista de Hunter/Farmer. Mapeie em Configurações.</p>
       <table>
-        <thead><tr><th>Vendedor</th><th>Papel</th><th>Nº vendas</th><th>Valor total</th><th>Ticket médio</th></tr></thead>
-        <tbody id="vendedoresBody"></tbody>
+        <thead><tr><th>Nome na planilha</th><th>Nº vendas</th><th>Valor total</th></tr></thead>
+        <tbody id="outrosBody"></tbody>
       </table>
+    </div>
+    <div class="card">
+      <h3>Ideias para próximas métricas</h3>
+      <p class="hint">Sugestões — me diga quais você quer que eu implemente:</p>
+      <ul class="idea-list">
+        <li>Taxa de conversão: nº de leads recebidos vs. nº fechados por hunter/farmer</li>
+        <li>Evolução dos últimos 6 meses por pessoa (linha do tempo individual)</li>
+        <li>Ranking mensal com posição do mês anterior (subiu/desceu)</li>
+        <li>Maior venda do mês e menor ciclo de fechamento</li>
+        <li>Concentração de carteira: quanto os top 5 clientes representam do total</li>
+        <li>Alerta automático quando alguém está abaixo de X% da meta a poucos dias do fim do mês</li>
+        <li>Exportar relatório mensal em PDF com um clique</li>
+      </ul>
     </div>
   </div>
 
   <div class="tabpanel" id="tab-settings">
-    <div class="card" style="margin-bottom:14px;">
-      <h3>Mapeamento de nomes do time de compras</h3>
-      <p class="hint">A planilha usa apelidos e grafias diferentes para as mesmas pessoas. Abaixo estão os mapeamentos ativos (padrão + os que você adicionar). Qualquer nome na planilha que não estiver mapeado para um destes 8 é ignorado no painel.</p>
-      <div id="aliasRows"></div>
-      <button class="small-btn" id="btnAddAlias">+ adicionar mapeamento</button>
-      <div id="unmappedWrap" style="margin-top:16px;">
-        <div style="font-size:12px;color:var(--muted);margin-bottom:6px;">Nomes reconhecidos atualmente (clique para copiar):</div>
-        <div class="unmapped-list" id="unmappedList"></div>
+    <div class="card">
+      <h3>Metas mensais</h3>
+      <div class="filter-group" style="margin-bottom:12px;">
+        <label>Mês de referência</label>
+        <input type="month" id="metaMonth">
       </div>
+      <div class="lock-box" id="lockBox"></div>
+      <div id="metasWrap"></div>
     </div>
     <div class="card">
-      <h3>Papel dos vendedores (Farmer / Hunter)</h3>
-      <div id="rolesWrap" class="hint">Defina em "Dados avançados" → tabela de vendedores.</div>
+      <h3>Mapeamento de nomes — Compras</h3>
+      <p class="hint">Apelidos/grafias que já mapeiam para os 8 do time de compras. Qualquer nome não mapeado é ignorado.</p>
+      <div id="aliasRows"></div>
+      <button class="small-btn" id="btnAddAlias">+ adicionar mapeamento</button>
+    </div>
+    <div class="card">
+      <h3>Mapeamento de nomes — Hunters &amp; Farmers</h3>
+      <p class="hint">Liga o nome como aparece na planilha (coluna vendedor) à pessoa da lista de Hunter/Farmer.</p>
+      <div id="vendorAliasRows"></div>
+      <button class="small-btn" id="btnAddVendorAlias">+ adicionar mapeamento</button>
+      <div style="margin-top:16px;">
+        <div style="font-size:12px;color:var(--muted);margin-bottom:6px;">Nomes de vendedor vistos na planilha (clique para copiar):</div>
+        <div class="unmapped-list" id="vendorNamesList"></div>
+      </div>
     </div>
   </div>
 
@@ -204,41 +212,39 @@
 const GOALS_CSV = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vR3O2y8LsZD7lnm1Hw_wfZoYJek_fjKfNjtjnxMix1KwD4pHcll1_J7MXCrl6Kc86DOdu_11YhJxxXa/pub?output=csv';
 const SALES_CSV = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vR3O2y8LsZD7lnm1Hw_wfZoYJek_fjKfNjtjnxMix1KwD4pHcll1_J7MXCrl6Kc86DOdu_11YhJxxXa/pub?gid=1071860344&single=true&output=csv';
 
-// The only people who should ever show up as "consultor de conversão".
 const APPROVED_CONSULTANTS = ['Laura','Malu','Beatriz Alcara','Rafael "Chelo" Teixeira','Mariana Estevão','Matheus Rocha','João Pedro','JP Brasil'];
+const HUNTERS = ['Jayanne','Monique','Thiago','Maira','Duymi'];
+const FARMERS = ['Pablo','Raul','Ana Carolina','Victor Hugo (Choco)','Andres','Roberto','Danilo'];
 
-// Default nickname -> canonical mapping (normalized keys: lowercase, no accents).
-// Extendable/overridable from the Configurações tab.
 const DEFAULT_ALIASES = {
-  'laura':'Laura',
-  'malu':'Malu',
-  'maria barros':'Malu',
-  'beatriz':'Beatriz Alcara',
-  'beatriz alcara':'Beatriz Alcara',
-  'bea':'Beatriz Alcara',
-  'rafael':'Rafael "Chelo" Teixeira',
-  'chelo':'Rafael "Chelo" Teixeira',
-  'tchelo':'Rafael "Chelo" Teixeira',
-  'rafa':'Rafael "Chelo" Teixeira',
-  'rafael chelo texeira':'Rafael "Chelo" Teixeira',
-  'rafael "chelo" texeira':'Rafael "Chelo" Teixeira',
-  'mariana':'Mariana Estevão',
-  'mari':'Mariana Estevão',
-  'mariana estevao':'Mariana Estevão',
-  'matheus':'Matheus Rocha',
-  'matheus rocha':'Matheus Rocha',
-  'joao pedro':'João Pedro',
-  'jp':'João Pedro',
-  'jp brasil':'JP Brasil'
+  'laura':'Laura','malu':'Malu','maria barros':'Malu',
+  'beatriz':'Beatriz Alcara','beatriz alcara':'Beatriz Alcara','bea':'Beatriz Alcara',
+  'rafael':'Rafael "Chelo" Teixeira','chelo':'Rafael "Chelo" Teixeira','tchelo':'Rafael "Chelo" Teixeira','rafa':'Rafael "Chelo" Teixeira',
+  'rafael chelo texeira':'Rafael "Chelo" Teixeira','rafael "chelo" texeira':'Rafael "Chelo" Teixeira',
+  'mariana':'Mariana Estevão','mari':'Mariana Estevão','mariana estevao':'Mariana Estevão',
+  'matheus':'Matheus Rocha','matheus rocha':'Matheus Rocha',
+  'joao pedro':'João Pedro','jp':'João Pedro','jp brasil':'JP Brasil'
+};
+
+// Best-guess mapping from raw "Assigned" (vendedor) names to the Hunter/Farmer rosters.
+// NOTE: 'victor biselli' -> 'Victor Hugo (Choco)' is an assumption — confirm/adjust in Configurações if wrong.
+const DEFAULT_VENDOR_ALIASES = {
+  'thiago':'Thiago','thiago cardoso':'Thiago',
+  'monique':'Monique','monique moreira':'Monique',
+  'jayanne':'Jayanne','jayanne queiroz':'Jayanne',
+  'maira':'Maira','maira garcia':'Maira',
+  'duymi':'Duymi',
+  'raul':'Raul','raul cruz':'Raul',
+  'ana carolina':'Ana Carolina','ana carolina pepe':'Ana Carolina',
+  'victor hugo':'Victor Hugo (Choco)','choco':'Victor Hugo (Choco)','victor biselli':'Victor Hugo (Choco)',
+  'andres':'Andres','andres pino':'Andres',
+  'pablo':'Pablo','roberto':'Roberto','danilo':'Danilo'
 };
 
 let state = {
-  sales: [],
-  goals: [],
-  aliasMap: {},
-  vendorRoles: {},
-  charts: {},
-  defaultsApplied: false
+  sales: [], goals: [], aliasMap: {}, vendorAliasMap: {},
+  metas: {}, metasPassword: null, metasUnlocked: false,
+  charts: {}, defaultsApplied: false
 };
 
 // ---------- helpers ----------
@@ -257,6 +263,7 @@ function fmtCurrencyShort(n){
   return 'R$ '+n.toFixed(0);
 }
 function toInputDate(d){ const y=d.getFullYear(),m=String(d.getMonth()+1).padStart(2,'0'),day=String(d.getDate()).padStart(2,'0'); return `${y}-${m}-${day}`; }
+function toMonthInput(d){ return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`; }
 function firstDayOfMonth(d){ return new Date(d.getFullYear(), d.getMonth(), 1); }
 function lastDayOfMonth(d){ return new Date(d.getFullYear(), d.getMonth()+1, 0); }
 
@@ -277,8 +284,6 @@ function extractRawNames(raw){
   }
   return out;
 }
-
-// returns canonical display name if recognized as one of the compras team, else null (discarded)
 function canonicalName(raw){
   const key = normKey(raw);
   if(!key) return null;
@@ -286,24 +291,35 @@ function canonicalName(raw){
   if(DEFAULT_ALIASES[key]) return DEFAULT_ALIASES[key];
   return null;
 }
+function vendorCanonical(raw){
+  const key = normKey(raw);
+  if(!key) return {name: raw, group:'outros'};
+  let name = null;
+  if(state.vendorAliasMap[key]) name = state.vendorAliasMap[key];
+  else if(DEFAULT_VENDOR_ALIASES[key]) name = DEFAULT_VENDOR_ALIASES[key];
+  if(name){
+    if(HUNTERS.includes(name)) return {name, group:'hunter'};
+    if(FARMERS.includes(name)) return {name, group:'farmer'};
+    return {name, group:'outros'};
+  }
+  return {name: raw.trim(), group:'outros'};
+}
 
 function avatarInitials(name){
-  const parts = name.replace(/["]/g,'').split(/\s+/).filter(Boolean);
+  const parts = name.replace(/["()]/g,'').split(/\s+/).filter(Boolean);
   if(parts.length===1) return parts[0].slice(0,2).toUpperCase();
   return (parts[0][0]+parts[parts.length-1][0]).toUpperCase();
 }
 function avatarColor(name){
   let hash=0; for(let i=0;i<name.length;i++) hash = name.charCodeAt(i) + ((hash<<5)-hash);
-  const hue = 38 + (hash % 25); // stays within gold/amber range
+  const hue = 38 + (hash % 25);
   return `hsl(${hue} 85% 55%)`;
 }
 function avatarHTML(name, size){
-  const initials = avatarInitials(name);
-  const color = avatarColor(name);
-  return `<div class="avatar" style="width:${size}px;height:${size}px;background:${color};font-size:${size*0.36}px;">${initials}</div>`;
+  return `<div class="avatar" style="width:${size}px;height:${size}px;background:${avatarColor(name)};font-size:${size*0.36}px;">${avatarInitials(name)}</div>`;
 }
 
-// ---------- fetching ----------
+// ---------- fetch ----------
 async function fetchCSVText(url){
   try{
     const r = await fetch(url, {cache:'no-store'});
@@ -318,14 +334,13 @@ async function fetchCSVText(url){
 }
 function parseCSV(text){ return Papa.parse(text, {skipEmptyLines:false}).data; }
 
-// ---------- goals sheet parsing (free-form layout) ----------
+// ---------- goals parsing ----------
 const GOAL_KEYS = ['CONVERSÔES','CONVERSOES','META','META DE SIMULAÇÕES','META DE SIMULACOES','SIMULAÇÕES ENTREGUES','SIMULACOES ENTREGUES','SIMULAÇÕES ENTREGUES MÊS','SIMULACOES ENTREGUES MES','SIMULAÇÕES ENTREGUES HOJE','SIMULACOES ENTREGUES HOJE','META DO SPRINT','ENTREGAS DO SPRINT','NOVAS ENVIADAS PARA A PROCESS','ALTERAÇÕES ENVIADAS A PROCESS','ALTERACOES ENVIADAS A PROCESS','NOVAS  ENTREGUES','NOVAS ENTREGUES','ALTERAÇÕES ENTREGUES','ALTERACOES ENTREGUES','NOVAS ONGOING','ALTERAÇÕES ONGOING','ALTERACOES ONGOING','DATA'];
 function isKnownKey(label){ if(!label) return false; const up = stripAccents(label.trim().toUpperCase()); return GOAL_KEYS.some(k=>stripAccents(k.toUpperCase())===up); }
 function normalizeKeyLabel(label){
   const up = stripAccents(label.trim().toUpperCase());
   if(up.includes('CONVERS')) return 'conversoes';
   if(up==='META') return 'meta';
-  if(up.includes('META DE SIMULA')) return 'metaSimulacoes';
   if(up==='DATA') return 'data';
   return null;
 }
@@ -338,8 +353,7 @@ function parseGoalsBlock(rows, labelCol, valueCol){
     if(!label) continue;
     if(!isKnownKey(label)){
       if(current && current.name) out.push(current);
-      let cleanName = label.replace(/^DASHBORD\s+/i,'').replace(/^DASHBOARD\s+/i,'').trim();
-      current = {name: cleanName};
+      current = {name: label.replace(/^DASHBORD\s+/i,'').replace(/^DASHBOARD\s+/i,'').trim()};
     } else {
       const key = normalizeKeyLabel(label);
       if(key && key!=='data' && current){
@@ -355,11 +369,11 @@ function loadGoals(csvText){
   const rows = parseCSV(csvText);
   const left = parseGoalsBlock(rows, 5, 6);
   const right = parseGoalsBlock(rows, 11, 12);
-  const all = [...left, ...right].filter(p=>p.name && p.name.length>1);
-  state.goals = all.map(g=>({...g, canonical: canonicalName(g.name)})).filter(g=>g.canonical);
+  state.goals = [...left, ...right].filter(p=>p.name && p.name.length>1)
+    .map(g=>({...g, canonical: canonicalName(g.name)})).filter(g=>g.canonical);
 }
 
-// ---------- sales sheet parsing ----------
+// ---------- sales parsing ----------
 let yearTracker = {lastMonth:null, year:2025};
 function inferYear(monthNum){
   if(monthNum==null||isNaN(monthNum)) return yearTracker.year;
@@ -390,33 +404,37 @@ function loadSales(csvText){
     const row = rows[i];
     if(!row || row.length<6) continue;
     const dateStr = row[0];
-    const vendedor = (row[3]||'').toString().trim();
+    const vendedorRaw = (row[3]||'').toString().trim();
     const valorRaw = row[5];
     const tagRaw = row[6];
     const mesVenda = row[7];
-    if(!vendedor && !valorRaw) continue;
+    if(!vendedorRaw && !valorRaw) continue;
     const date = parseSaleDate(dateStr, mesVenda);
     const valor = parseBRNumber(valorRaw);
     const rawNames = extractRawNames(tagRaw);
     const names = [...new Set(rawNames.map(canonicalName).filter(Boolean))];
-    sales.push({ date, vendedor, vendedorCanonical: vendedor, valor, names });
+    const vend = vendorCanonical(vendedorRaw);
+    sales.push({ date, valor, names, vendedorName: vend.name, vendedorGroup: vend.group });
   }
   state.sales = sales.filter(s=>s.date);
 }
 
 // ---------- persistence ----------
 async function loadPersisted(){
-  try{ const r = await window.storage.get('consultor-alias-map-v2', true); if(r && r.value) state.aliasMap = JSON.parse(r.value); }catch(e){}
-  try{ const r = await window.storage.get('vendedor-roles', true); if(r && r.value) state.vendorRoles = JSON.parse(r.value); }catch(e){}
+  try{ const r = await window.storage.get('consultor-alias-map-v2', true); if(r&&r.value) state.aliasMap = JSON.parse(r.value); }catch(e){}
+  try{ const r = await window.storage.get('vendor-alias-map-v1', true); if(r&&r.value) state.vendorAliasMap = JSON.parse(r.value); }catch(e){}
+  try{ const r = await window.storage.get('metas-mensais-v1', true); if(r&&r.value) state.metas = JSON.parse(r.value); }catch(e){}
+  try{ const r = await window.storage.get('metas-password-v1', true); if(r&&r.value) state.metasPassword = JSON.parse(r.value); }catch(e){}
 }
 async function saveAliasMap(){ try{ await window.storage.set('consultor-alias-map-v2', JSON.stringify(state.aliasMap), true); }catch(e){} }
-async function saveVendorRoles(){ try{ await window.storage.set('vendedor-roles', JSON.stringify(state.vendorRoles), true); }catch(e){} }
+async function saveVendorAliasMap(){ try{ await window.storage.set('vendor-alias-map-v1', JSON.stringify(state.vendorAliasMap), true); }catch(e){} }
+async function saveMetas(){ try{ await window.storage.set('metas-mensais-v1', JSON.stringify(state.metas), true); }catch(e){} }
+async function saveMetasPassword(){ try{ await window.storage.set('metas-password-v1', JSON.stringify(state.metasPassword), true); }catch(e){} }
 
-// ---------- main data load ----------
+// ---------- main load ----------
 async function loadAllData(){
   document.getElementById('banners').innerHTML = '';
   document.getElementById('lastUpdated').textContent = 'atualizando…';
-
   let goalsText, salesText;
   try{
     await loadPersisted();
@@ -425,21 +443,18 @@ async function loadAllData(){
     loadSales(salesText);
   }catch(e){
     console.error(e);
-    document.getElementById('banners').innerHTML =
-      '<div class="banner err">Não consegui carregar os dados da planilha agora (' + (e.message||'erro de rede') +
-      '). Clique em "Atualizar dados" para tentar de novo.</div>';
+    document.getElementById('banners').innerHTML = '<div class="banner err">Não consegui carregar os dados da planilha agora (' + (e.message||'erro de rede') + '). Clique em "Atualizar dados" para tentar de novo.</div>';
     document.getElementById('lastUpdated').textContent = 'falha ao atualizar';
     return;
   }
-
   document.getElementById('lastUpdated').textContent = 'dados atualizados em ' + new Date().toLocaleString('pt-BR');
   document.getElementById('dataSourceNote').textContent = state.sales.length + ' vendas carregadas';
-
   try{
+    const now = new Date();
     if(!state.defaultsApplied){
-      const now = new Date();
       document.getElementById('fDateFrom').value = toInputDate(firstDayOfMonth(now));
       document.getElementById('fDateTo').value = toInputDate(lastDayOfMonth(now));
+      document.getElementById('metaMonth').value = toMonthInput(now);
       state.defaultsApplied = true;
     }
     updateMonthPill();
@@ -447,9 +462,7 @@ async function loadAllData(){
     renderAll();
   }catch(e){
     console.error(e);
-    document.getElementById('banners').innerHTML =
-      '<div class="banner err">Os dados foram carregados (' + state.sales.length + ' vendas), mas houve um erro ao desenhar o painel: ' +
-      (e.message||'erro desconhecido') + '. Avise o Claude com essa mensagem para corrigir.</div>';
+    document.getElementById('banners').innerHTML = '<div class="banner err">Os dados foram carregados (' + state.sales.length + ' vendas), mas houve um erro ao desenhar o painel: ' + (e.message||'erro desconhecido') + '. Avise o Claude com essa mensagem para corrigir.</div>';
   }
 }
 
@@ -462,11 +475,7 @@ function updateMonthPill(){
 }
 
 // ---------- filters ----------
-function buildFilterOptions(){
-  const vendedores = [...new Set(state.sales.map(s=>s.vendedorCanonical))].sort();
-  fillSelect('fVendedor', vendedores);
-  fillSelect('fConsultor', APPROVED_CONSULTANTS);
-}
+function buildFilterOptions(){ fillSelect('fConsultor', APPROVED_CONSULTANTS); }
 function fillSelect(id, values){
   const el = document.getElementById(id);
   const prevSelected = new Set([...el.selectedOptions].map(o=>o.value));
@@ -481,27 +490,32 @@ function fillSelect(id, values){
 function getFiltered(){
   const from = document.getElementById('fDateFrom').value ? new Date(document.getElementById('fDateFrom').value) : null;
   const to = document.getElementById('fDateTo').value ? new Date(document.getElementById('fDateTo').value) : null;
-  const vendSel = [...document.getElementById('fVendedor').selectedOptions].map(o=>o.value);
   const consSel = [...document.getElementById('fConsultor').selectedOptions].map(o=>o.value);
   return state.sales.filter(s=>{
     if(from && s.date < from) return false;
     if(to){ const toEnd = new Date(to); toEnd.setHours(23,59,59,999); if(s.date > toEnd) return false; }
-    if(vendSel.length && !vendSel.includes(s.vendedorCanonical)) return false;
     if(consSel.length && !s.names.some(n=>consSel.includes(n))) return false;
     return true;
   });
 }
+function currentMetaMonthKey(){ return document.getElementById('metaMonth').value || toMonthInput(new Date()); }
+function getMeta(group, name){
+  const mk = document.getElementById('fDateFrom').value ? document.getElementById('fDateFrom').value.slice(0,7) : toMonthInput(new Date());
+  const bucket = state.metas[mk];
+  if(bucket && bucket[group] && bucket[group][name]!=null) return bucket[group][name];
+  return null;
+}
 
-// ---------- rendering ----------
+// ---------- render ----------
 function renderAll(){
   updateMonthPill();
   const filtered = getFiltered();
   renderKPIs(filtered);
-  renderInicio(filtered);
-  renderConsultores(filtered);
+  renderCompras(filtered);
+  renderHF(filtered);
   renderTicketTable(filtered);
+  renderOutros(filtered);
   renderCharts(filtered);
-  renderVendedores(filtered);
   renderSettings();
 }
 
@@ -514,176 +528,203 @@ function renderKPIs(filtered){
     {label:'Vendas totais', value: fmtCurrencyShort(total), sub: fmtCurrency(total)},
     {label:'Nº de negócios', value: count.toLocaleString('pt-BR'), sub:'no período filtrado'},
     {label:'Ticket médio', value: fmtCurrencyShort(avg), sub: fmtCurrency(avg)},
-    {label:'Conversões atribuídas', value: totalConversoes.toLocaleString('pt-BR'), sub:'time de compras'}
+    {label:'Conversões (compras)', value: totalConversoes.toLocaleString('pt-BR'), sub:'somando as tags'}
   ];
-  document.getElementById('kpiRow').innerHTML = kpis.map(k=>
-    `<div class="kpi"><div class="label">${k.label}</div><div class="value">${k.value}</div><div class="sub">${k.sub}</div></div>`
-  ).join('');
+  document.getElementById('kpiRow').innerHTML = kpis.map(k=>`<div class="kpi"><div class="label">${k.label}</div><div class="value">${k.value}</div><div class="sub">${k.sub}</div></div>`).join('');
 }
 
 function destroyChart(id){ if(state.charts[id]){ state.charts[id].destroy(); delete state.charts[id]; } }
 
 function computeConsultantStats(filtered){
-  const byConsultor = {};
-  for(const name of APPROVED_CONSULTANTS) byConsultor[name] = {count:0, valor:0};
-  for(const s of filtered){
-    for(const n of s.names){
-      if(!byConsultor[n]) byConsultor[n] = {count:0, valor:0};
-      byConsultor[n].count += 1;
-      byConsultor[n].valor += s.valor;
-    }
-  }
-  return byConsultor;
+  const byC = {}; for(const n of APPROVED_CONSULTANTS) byC[n] = {count:0, valor:0};
+  for(const s of filtered) for(const n of s.names){ if(!byC[n]) byC[n]={count:0,valor:0}; byC[n].count++; byC[n].valor+=s.valor; }
+  return byC;
+}
+function computeVendorStats(filtered, group){
+  const roster = group==='hunter'?HUNTERS:FARMERS;
+  const byV = {}; for(const n of roster) byV[n] = {count:0, valor:0};
+  for(const s of filtered){ if(s.vendedorGroup===group){ if(!byV[s.vendedorName]) byV[s.vendedorName]={count:0,valor:0}; byV[s.vendedorName].count++; byV[s.vendedorName].valor+=s.valor; } }
+  return byV;
 }
 
-function renderInicio(filtered){
+function peopleCard(name, stats, metaVal, showConversoes){
+  const pct = metaVal ? Math.min(100, Math.round((stats.valor/metaVal)*100)) : null;
+  return `<div class="people-card">
+    <div class="bar">${name}</div>
+    <div class="avatar-wrap">${avatarHTML(name,64)}</div>
+    <div class="big"><div class="num">${fmtCurrencyShort(stats.valor)}</div><div class="lbl">vendido no período</div></div>
+    ${metaVal!=null ? `<div class="progress"><div style="width:${pct}%"></div></div>` : ''}
+    <div class="metrics">
+      ${showConversoes ? `<div class="row"><span>Conversões</span><span>${stats.count}</span></div>` : `<div class="row"><span>Nº vendas</span><span>${stats.count}</span></div>`}
+      ${metaVal!=null ? `<div class="row"><span>Meta do mês</span><span>${fmtCurrencyShort(metaVal)}</span></div><div class="row"><span>% da meta</span><span>${pct}%</span></div>` : `<div class="row"><span>Meta do mês</span><span>não definida</span></div>`}
+    </div>
+  </div>`;
+}
+
+function renderCompras(filtered){
   const stats = computeConsultantStats(filtered);
-  document.getElementById('inicioGrid').innerHTML = APPROVED_CONSULTANTS.map(name=>{
-    const s = stats[name] || {count:0, valor:0};
-    const goal = state.goals.find(g=>g.canonical===name);
-    const meta = goal && goal.meta ? fmtCurrencyShort(goal.meta) : '—';
-    return `<div class="people-card">
-      <div class="bar">${name}</div>
-      <div class="avatar-wrap">${avatarHTML(name, 64)}</div>
-      <div class="metrics">
-        <div class="row"><span>Conversões</span><span>${s.count}</span></div>
-        <div class="row"><span>Meta</span><span>${meta}</span></div>
-      </div>
-    </div>`;
+  document.getElementById('comprasGrid').innerHTML = APPROVED_CONSULTANTS.map(name=>{
+    const meta = getMeta('compras', name);
+    return peopleCard(name, stats[name], meta, true);
   }).join('');
 }
-
-function renderConsultores(filtered){
-  const stats = computeConsultantStats(filtered);
-  document.getElementById('consultoresGrid').innerHTML = APPROVED_CONSULTANTS.map(name=>{
-    const s = stats[name] || {count:0, valor:0};
-    return `<div class="people-card">
-      <div class="bar">${name}</div>
-      <div class="avatar-wrap">${avatarHTML(name, 64)}</div>
-      <div class="big">
-        <div class="num">${fmtCurrencyShort(s.valor)}</div>
-        <div class="lbl">vendido no período</div>
-      </div>
-      <div class="metrics">
-        <div class="row"><span>Conversões</span><span>${s.count}</span></div>
-      </div>
-    </div>`;
-  }).join('');
+function renderHF(filtered){
+  const hStats = computeVendorStats(filtered, 'hunter');
+  const fStats = computeVendorStats(filtered, 'farmer');
+  document.getElementById('huntersGrid').innerHTML = HUNTERS.map(name=>peopleCard(name, hStats[name], getMeta('hunter', name), false)).join('');
+  document.getElementById('farmersGrid').innerHTML = FARMERS.map(name=>peopleCard(name, fStats[name], getMeta('farmer', name), false)).join('');
 }
-
 function renderTicketTable(filtered){
   const stats = computeConsultantStats(filtered);
   document.getElementById('ticketBody').innerHTML = APPROVED_CONSULTANTS.map(name=>{
-    const s = stats[name] || {count:0, valor:0};
-    const ticket = s.count ? s.valor/s.count : 0;
+    const s = stats[name]; const ticket = s.count ? s.valor/s.count : 0;
     return `<tr><td>${name}</td><td>${s.count}</td><td>${fmtCurrency(s.valor)}</td><td>${fmtCurrency(ticket)}</td></tr>`;
   }).join('');
+}
+function renderOutros(filtered){
+  const byV = {};
+  for(const s of filtered){ if(s.vendedorGroup==='outros'){ if(!byV[s.vendedorName]) byV[s.vendedorName]={count:0,valor:0}; byV[s.vendedorName].count++; byV[s.vendedorName].valor+=s.valor; } }
+  const rows = Object.entries(byV).sort((a,b)=>b[1].valor-a[1].valor);
+  document.getElementById('outrosBody').innerHTML = rows.map(([name,v])=>`<tr><td>${name}</td><td>${v.count}</td><td>${fmtCurrency(v.valor)}</td></tr>`).join('') || '<tr><td colspan="3" style="color:var(--muted);">Nenhum vendedor não classificado no período.</td></tr>';
 }
 
 function renderCharts(filtered){
   const byMonth = {};
-  for(const s of filtered){
-    const key = s.date.getFullYear()+'-'+String(s.date.getMonth()+1).padStart(2,'0');
-    byMonth[key] = (byMonth[key]||0) + s.valor;
-  }
+  for(const s of filtered){ const key = s.date.getFullYear()+'-'+String(s.date.getMonth()+1).padStart(2,'0'); byMonth[key]=(byMonth[key]||0)+s.valor; }
   const monthKeys = Object.keys(byMonth).sort();
   destroyChart('month');
   state.charts.month = new Chart(document.getElementById('chartMonth'), {
+    type:'bar', data:{ labels: monthKeys, datasets:[{ label:'Vendas', data: monthKeys.map(k=>byMonth[k]), backgroundColor:'#FFC72C' }] },
+    options:{ responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}}, scales:{ x:{ticks:{color:'#9a9a9f'},grid:{color:'#2a2a2e'}}, y:{ticks:{color:'#9a9a9f'},grid:{color:'#2a2a2e'}} } }
+  });
+
+  const hStats = computeVendorStats(filtered,'hunter'), fStats = computeVendorStats(filtered,'farmer');
+  const people = [...HUNTERS.map(n=>({n,s:hStats[n]})), ...FARMERS.map(n=>({n,s:fStats[n]}))];
+  const labels = people.map(p=>p.n);
+  const realizado = people.map(p=>p.s.valor);
+  const metas = people.map(p=>{
+    const g = HUNTERS.includes(p.n)?'hunter':'farmer';
+    return getMeta(g,p.n) || 0;
+  });
+  destroyChart('metaReal');
+  state.charts.metaReal = new Chart(document.getElementById('chartMetaReal'), {
     type:'bar',
-    data:{ labels: monthKeys, datasets:[{ label:'Vendas', data: monthKeys.map(k=>byMonth[k]), backgroundColor:'#FFC72C' }] },
-    options:{ responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}},
+    data:{ labels, datasets:[
+      {label:'Realizado', data: realizado, backgroundColor:'#3ecf7a'},
+      {label:'Meta', data: metas, backgroundColor:'#2a2a2e'}
+    ]},
+    options:{ responsive:true, maintainAspectRatio:false,
+      plugins:{legend:{labels:{color:'#f2f2f0'}}},
       scales:{ x:{ticks:{color:'#9a9a9f'},grid:{color:'#2a2a2e'}}, y:{ticks:{color:'#9a9a9f'},grid:{color:'#2a2a2e'}} } }
   });
-
-  const byVend = {};
-  for(const s of filtered) byVend[s.vendedorCanonical] = (byVend[s.vendedorCanonical]||0) + s.valor;
-  const vendKeys = Object.keys(byVend).sort((a,b)=>byVend[b]-byVend[a]).slice(0,10);
-  destroyChart('vend');
-  state.charts.vend = new Chart(document.getElementById('chartVendedores'), {
-    type:'bar',
-    data:{ labels: vendKeys, datasets:[{ label:'Vendas', data: vendKeys.map(k=>byVend[k]), backgroundColor:'#5b9bef' }] },
-    options:{ indexAxis:'y', responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}},
-      scales:{ x:{ticks:{color:'#9a9a9f'},grid:{color:'#2a2a2e'}}, y:{ticks:{color:'#9a9a9f'},grid:{display:false}} } }
-  });
 }
 
-function renderVendedores(filtered){
-  const byVend = {};
-  for(const s of filtered){
-    if(!byVend[s.vendedorCanonical]) byVend[s.vendedorCanonical] = {count:0, valor:0};
-    byVend[s.vendedorCanonical].count += 1;
-    byVend[s.vendedorCanonical].valor += s.valor;
-  }
-  const rows = Object.entries(byVend).sort((a,b)=>b[1].valor - a[1].valor);
-  document.getElementById('vendedoresBody').innerHTML = rows.map(([name,v])=>{
-    const key = normKey(name);
-    const role = state.vendorRoles[key] || '';
-    return `<tr>
-      <td>${name}</td>
-      <td><select class="role-select" data-vendor="${key}">
-            <option value="" ${role===''?'selected':''}>Não definido</option>
-            <option value="Farmer" ${role==='Farmer'?'selected':''}>Farmer</option>
-            <option value="Hunter" ${role==='Hunter'?'selected':''}>Hunter</option>
-          </select></td>
-      <td>${v.count}</td>
-      <td>${fmtCurrency(v.valor)}</td>
-      <td>${fmtCurrency(v.count?v.valor/v.count:0)}</td>
-    </tr>`;
-  }).join('');
-  document.querySelectorAll('.role-select').forEach(sel=>{
-    sel.addEventListener('change', async (e)=>{
-      state.vendorRoles[e.target.dataset.vendor] = e.target.value;
-      await saveVendorRoles();
-    });
-  });
-}
-
+// ---------- settings: alias tools ----------
 function renderSettings(){
-  const wrap = document.getElementById('aliasRows');
-  wrap.innerHTML = '';
-  for(const [key, canonical] of Object.entries(DEFAULT_ALIASES)) addAliasRow(key, canonical, true);
-  for(const [key, canonical] of Object.entries(state.aliasMap)) addAliasRow(key, canonical, false);
+  const wrap = document.getElementById('aliasRows'); wrap.innerHTML = '';
+  for(const [k,v] of Object.entries(DEFAULT_ALIASES)) addAliasRow(wrap,k,v,true,'aliasMap');
+  for(const [k,v] of Object.entries(state.aliasMap)) addAliasRow(wrap,k,v,false,'aliasMap');
 
-  const allRaw = new Set();
-  for(const s of state.sales) s.names.forEach(n=>allRaw.add(n));
-  document.getElementById('unmappedList').innerHTML = [...allRaw].sort().map(n=>
-    `<span class="unmapped-chip" onclick="navigator.clipboard && navigator.clipboard.writeText('${n.replace(/'/g,"\\'")}')" title="clique para copiar">${n}</span>`
-  ).join('');
+  const vwrap = document.getElementById('vendorAliasRows'); vwrap.innerHTML = '';
+  for(const [k,v] of Object.entries(DEFAULT_VENDOR_ALIASES)) addAliasRow(vwrap,k,v,true,'vendorAliasMap');
+  for(const [k,v] of Object.entries(state.vendorAliasMap)) addAliasRow(vwrap,k,v,false,'vendorAliasMap');
+
+  const vendorNames = new Set(state.sales.map(s=>s.vendedorName));
+  document.getElementById('vendorNamesList').innerHTML = [...vendorNames].sort().map(n=>`<span class="unmapped-chip" onclick="navigator.clipboard && navigator.clipboard.writeText('${n.replace(/'/g,"\\'")}')">${n}</span>`).join('');
+
+  renderMetasPanel();
 }
-
-function addAliasRow(fromVal='', toVal='', isDefault=false){
-  const wrap = document.getElementById('aliasRows');
+function addAliasRow(wrap, fromVal, toVal, isDefault, mapName){
   const row = document.createElement('div');
   row.className = 'alias-row';
   row.innerHTML = `
-    <input type="text" placeholder="apelido/variação (ex: chelo)" value="${fromVal}" ${isDefault?'disabled':''}>
-    <input type="text" placeholder="nome unificado" value="${toVal}" ${isDefault?'disabled':''}>
-    <button class="small-btn danger" ${isDefault?'disabled title="mapeamento padrão"':''}>${isDefault?'padrão':'remover'}</button>
+    <input type="text" value="${fromVal}" ${isDefault?'disabled':''}>
+    <input type="text" value="${toVal}" ${isDefault?'disabled':''}>
+    <button class="small-btn danger" ${isDefault?'disabled title="padrão"':''}>${isDefault?'padrão':'remover'}</button>
   `;
   if(!isDefault){
-    const [fromInput, toInput] = row.querySelectorAll('input');
+    const [fromInput,toInput] = row.querySelectorAll('input');
     const removeBtn = row.querySelector('button');
     async function commit(){
-      const newKey = normKey(fromInput.value);
-      if(!newKey) return;
-      state.aliasMap[newKey] = toInput.value.trim();
-      await saveAliasMap();
+      const key = normKey(fromInput.value); if(!key) return;
+      state[mapName][key] = toInput.value.trim();
+      if(mapName==='aliasMap') await saveAliasMap(); else await saveVendorAliasMap();
     }
     fromInput.addEventListener('change', commit);
     toInput.addEventListener('change', commit);
     removeBtn.addEventListener('click', async ()=>{
       const key = normKey(fromInput.value);
-      if(key) delete state.aliasMap[key];
+      if(key) delete state[mapName][key];
       row.remove();
-      await saveAliasMap();
+      if(mapName==='aliasMap') await saveAliasMap(); else await saveVendorAliasMap();
       await loadAllData();
     });
   }
   wrap.appendChild(row);
 }
+document.getElementById('btnAddAlias').addEventListener('click', ()=> addAliasRow(document.getElementById('aliasRows'),'','',false,'aliasMap'));
+document.getElementById('btnAddVendorAlias').addEventListener('click', ()=> addAliasRow(document.getElementById('vendorAliasRows'),'','',false,'vendorAliasMap'));
 
-document.getElementById('btnAddAlias').addEventListener('click', ()=> addAliasRow('', '', false));
+// ---------- settings: metas + password lock ----------
+function renderMetasPanel(){
+  const lockBox = document.getElementById('lockBox');
+  if(!state.metasUnlocked){
+    lockBox.innerHTML = `
+      <input type="password" id="unlockPass" placeholder="senha para editar metas">
+      <button class="btn secondary" id="btnUnlock">Desbloquear edição</button>
+      <span class="hint" style="margin:0;">senha padrão: <b>compras12p</b> (troque depois de desbloquear)</span>
+    `;
+    document.getElementById('btnUnlock').addEventListener('click', ()=>{
+      const val = document.getElementById('unlockPass').value;
+      const expected = state.metasPassword || 'compras12p';
+      if(val === expected){ state.metasUnlocked = true; renderMetasPanel(); }
+      else { lockBox.insertAdjacentHTML('beforeend', '<span style="color:var(--bad);font-size:12px;">senha incorreta</span>'); }
+    });
+    document.getElementById('metasWrap').innerHTML = '<p class="hint">Desbloqueie para ver e editar os valores.</p>';
+    return;
+  }
+  lockBox.innerHTML = `
+    <span style="color:var(--good);font-size:12px;">🔓 edição desbloqueada para esta sessão</span>
+    <input type="password" id="newPass" placeholder="nova senha">
+    <button class="small-btn" id="btnChangePass">salvar nova senha</button>
+    <button class="small-btn" id="btnLock">bloquear de novo</button>
+  `;
+  document.getElementById('btnChangePass').addEventListener('click', async ()=>{
+    const np = document.getElementById('newPass').value.trim();
+    if(np){ state.metasPassword = np; await saveMetasPassword(); alert('Senha atualizada.'); }
+  });
+  document.getElementById('btnLock').addEventListener('click', ()=>{ state.metasUnlocked=false; renderMetasPanel(); });
 
+  const mk = document.getElementById('metaMonth').value || toMonthInput(new Date());
+  if(!state.metas[mk]) state.metas[mk] = {compras:{}, hunter:{}, farmer:{}};
+  const groups = [
+    {key:'compras', label:'Compras', names: APPROVED_CONSULTANTS},
+    {key:'hunter', label:'Hunters', names: HUNTERS},
+    {key:'farmer', label:'Farmers', names: FARMERS}
+  ];
+  let html = '';
+  for(const g of groups){
+    html += `<div class="section-title" style="margin-top:14px;">${g.label}</div>`;
+    for(const name of g.names){
+      const val = state.metas[mk][g.key][name] ?? '';
+      html += `<div class="meta-row"><span>${name}</span><input type="number" step="0.01" data-group="${g.key}" data-name="${name}" value="${val}" placeholder="R$ 0,00"></div>`;
+    }
+  }
+  document.getElementById('metasWrap').innerHTML = html;
+  document.querySelectorAll('#metasWrap input[type=number]').forEach(inp=>{
+    inp.addEventListener('change', async ()=>{
+      const mk2 = document.getElementById('metaMonth').value || toMonthInput(new Date());
+      if(!state.metas[mk2]) state.metas[mk2] = {compras:{}, hunter:{}, farmer:{}};
+      const v = parseFloat(inp.value);
+      state.metas[mk2][inp.dataset.group][inp.dataset.name] = isNaN(v) ? null : v;
+      await saveMetas();
+      renderAll();
+    });
+  });
+}
+document.getElementById('metaMonth').addEventListener('change', ()=>{ renderMetasPanel(); });
+
+// ---------- tabs ----------
 document.querySelectorAll('.tab').forEach(tab=>{
   tab.addEventListener('click', ()=>{
     document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
@@ -694,12 +735,11 @@ document.querySelectorAll('.tab').forEach(tab=>{
 });
 
 ['fDateFrom','fDateTo'].forEach(id=>document.getElementById(id).addEventListener('change', renderAll));
-['fVendedor','fConsultor'].forEach(id=>document.getElementById(id).addEventListener('change', renderAll));
+document.getElementById('fConsultor').addEventListener('change', renderAll);
 document.getElementById('btnClearFilters').addEventListener('click', ()=>{
   const now = new Date();
   document.getElementById('fDateFrom').value = toInputDate(firstDayOfMonth(now));
   document.getElementById('fDateTo').value = toInputDate(lastDayOfMonth(now));
-  [...document.getElementById('fVendedor').options].forEach(o=>o.selected=false);
   [...document.getElementById('fConsultor').options].forEach(o=>o.selected=false);
   renderAll();
 });
