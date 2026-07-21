@@ -931,16 +931,16 @@ function peopleCard(name, stats, metaVal, opts){
   if(opts.ganhoValor!=null){
     const gMeta = opts.ganhoMeta;
     const gPct = gMeta ? Math.round((opts.ganhoValor/gMeta)*100) : null;
-    const gPctClamped = gPct!=null ? Math.min(100,gPct) : null;
-    const gBarColor = gPct==null ? 'var(--gold)' : (gPct>=100 ? 'var(--good)' : (gPct < (paceFraction()*100-15) ? 'var(--bad)' : 'var(--gold)'));
+    const gPctClamped = gPct!=null ? Math.min(100,gPct) : 0;
+    const gBarColor = gPct==null ? 'var(--line)' : (gPct>=100 ? 'var(--good)' : (gPct < (paceFraction()*100-15) ? 'var(--bad)' : 'var(--gold)'));
     ganhoBlock = `<div class="big" style="padding:2px 14px 6px;">
       <div class="num" style="font-size:16px;">${fmtUSDShort(opts.ganhoValor)}</div>
       <div class="lbl">ganho no período (USD)</div>
     </div>
-    ${gMeta ? `<div style="display:flex;align-items:center;gap:8px;margin:0 14px 12px;">
+    <div style="display:flex;align-items:center;gap:8px;margin:0 14px 12px;">
       <div class="progress" style="flex:1;"><div style="width:${gPctClamped}%;background:${gBarColor};"></div></div>
-      <span style="font-size:11px;font-weight:800;color:${gBarColor};min-width:36px;text-align:right;">${gPct}%</span>
-    </div>` : ''}`;
+      <span style="font-size:11px;font-weight:800;color:${gBarColor};min-width:36px;text-align:right;">${gPct==null?'—':gPct+'%'}</span>
+    </div>`;
   }
   return `<div class="people-card" ${clickAttr} ${opts.clickable ? 'style="cursor:pointer;"' : ''}>
     <div class="bar">${name}</div>
