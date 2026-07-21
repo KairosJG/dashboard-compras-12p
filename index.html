@@ -912,16 +912,19 @@ function computeGanhoStats(filteredHandovers){
 
 function peopleCard(name, stats, metaVal, opts){
   opts = opts || {};
-  const pct = metaVal ? Math.round((stats.valor/metaVal)*100) : null;
+  const hasMeta = metaVal!=null && metaVal>0;
+  const pct = hasMeta ? Math.round((stats.valor/metaVal)*100) : null;
   const pctClamped = pct!=null ? Math.min(100,pct) : null;
   const barColor = pct==null ? 'var(--gold)' : (pct>=100 ? 'var(--good)' : (pct< (paceFraction()*100-15) ? 'var(--bad)' : 'var(--gold)'));
   let paceRow = '';
-  if(opts.showPace && metaVal){
+  if(opts.showPace && hasMeta){
     const expected = metaVal * paceFraction();
     paceRow = `<div class="row"><span>Deveria ter vendido</span><span>${fmtCurrencyShort(expected)}</span></div>`;
   }
   const indicRow = opts.indicacoes!=null ? `<div class="row"><span>Indicações de produto</span><span>${opts.indicacoes}</span></div>` : '';
-  const customRows = (opts.customMetrics||[]).map(cm=>{
+  const allCustom = opts.customMetrics || [];
+  const usesFirstCustomAsHero = (opts.ganhoValor==null) && allCustom.length>0;
+  const customRows = (usesFirstCustomAsHero ? allCustom.slice(1) : allCustom).map(cm=>{
     const val = cm.atual!=null ? cm.atual : '—';
     const metaTxt = cm.meta!=null ? ` / ${cm.meta}` : '';
     return `<div class="row"><span>${cm.label}</span><span>${val}${metaTxt}</span></div>`;
@@ -941,22 +944,36 @@ function peopleCard(name, stats, metaVal, opts){
       <div class="progress" style="flex:1;"><div style="width:${gPctClamped}%;background:${gBarColor};"></div></div>
       <span style="font-size:11px;font-weight:800;color:${gBarColor};min-width:36px;text-align:right;">${gPct==null?'—':gPct+'%'}</span>
     </div>`;
+  } else if(usesFirstCustomAsHero){
+    const cm = allCustom[0];
+    const val = cm.atual!=null ? cm.atual : 0;
+    const cPct = cm.meta ? Math.round((val/cm.meta)*100) : null;
+    const cPctClamped = cPct!=null ? Math.min(100,cPct) : 0;
+    const cColor = cPct==null ? 'var(--line)' : (cPct>=100 ? 'var(--good)' : 'var(--gold)');
+    ganhoBlock = `<div class="big" style="padding:2px 14px 6px;">
+      <div class="num" style="font-size:16px;">${val}${cm.meta!=null ? ' / '+cm.meta : ''}</div>
+      <div class="lbl">${cm.label}</div>
+    </div>
+    <div style="display:flex;align-items:center;gap:8px;margin:0 14px 12px;">
+      <div class="progress" style="flex:1;"><div style="width:${cPctClamped}%;background:${cColor};"></div></div>
+      <span style="font-size:11px;font-weight:800;color:${cColor};min-width:36px;text-align:right;">${cPct==null?'—':cPct+'%'}</span>
+    </div>`;
   }
   return `<div class="people-card" ${clickAttr} ${opts.clickable ? 'style="cursor:pointer;"' : ''}>
     <div class="bar">${name}</div>
     <div class="avatar-wrap">${avatarHTML(name,64)}</div>
-    <div class="big" style="${opts.ganhoValor!=null ? 'padding-bottom:2px;' : ''}">
-      <div class="num" style="${opts.ganhoValor!=null ? 'font-size:17px;' : ''}">${fmtCurrencyShort(stats.valor)}</div>
+    <div class="big" style="${ganhoBlock ? 'padding-bottom:2px;' : ''}">
+      <div class="num" style="${ganhoBlock ? 'font-size:17px;' : ''}">${fmtCurrencyShort(stats.valor)}</div>
       <div class="lbl">vendido no período</div>
     </div>
-    ${metaVal!=null ? `<div style="display:flex;align-items:center;gap:8px;margin:0 14px 12px;">
+    ${hasMeta ? `<div style="display:flex;align-items:center;gap:8px;margin:0 14px 12px;">
       <div class="progress" style="flex:1;"><div style="width:${pctClamped}%;background:${barColor};"></div></div>
       <span style="font-size:11px;font-weight:800;color:${barColor};min-width:36px;text-align:right;">${pct}%</span>
     </div>` : ''}
     ${ganhoBlock}
     <div class="metrics">
       ${opts.showConversoes ? `<div class="row"><span>Conversões</span><span>${stats.count}</span></div>` : `<div class="row"><span>Nº vendas</span><span>${stats.count}</span></div>`}
-      ${metaVal!=null ? `<div class="row"><span>Meta do mês</span><span>${fmtCurrencyShort(metaVal)}</span></div><div class="row"><span>% da meta atingido</span><span>${pct}%</span></div>${paceRow}` : `<div class="row"><span>Meta do mês</span><span>não definida</span></div>`}
+      ${hasMeta ? `<div class="row"><span>Meta do mês</span><span>${fmtCurrencyShort(metaVal)}</span></div><div class="row"><span>% da meta atingido</span><span>${pct}%</span></div>${paceRow}` : `<div class="row"><span>Meta do mês</span><span>não definida</span></div>`}
       ${indicRow}
       ${customRows}
     </div>
@@ -966,6 +983,8 @@ function peopleCard(name, stats, metaVal, opts){
 
 // people whose "Indicações de produto" metric is hidden for now
 const HIDE_INDICACOES_FOR = ['Kevin'];
+// people whose "Ganho" block is hidden (custom metric shown in its place instead)
+const HIDE_GANHO_FOR = ['Kevin'];
 
 function renderCompras(filtered){
   const stats = computeConsultantStats(filtered);
@@ -977,7 +996,7 @@ function renderCompras(filtered){
       indicacoes: HIDE_INDICACOES_FOR.includes(name) ? null : (indic[name]||0),
       clickable:true,
       customMetrics: state.customMetrics[name] || [],
-      ganhoValor: ganho[name]||0,
+      ganhoValor: HIDE_GANHO_FOR.includes(name) ? null : (ganho[name]||0),
       ganhoMeta: getMeta('compras - ganho', name)
     })
   ).join('');
