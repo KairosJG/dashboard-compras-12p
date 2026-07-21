@@ -813,8 +813,8 @@ function peopleCard(name, stats, metaVal, opts){
     paceRow = `<div class="row"><span>Deveria ter vendido</span><span>${fmtCurrencyShort(expected)}</span></div>`;
   }
   const indicRow = opts.indicacoes!=null ? `<div class="row"><span>Indicações de produto</span><span>${opts.indicacoes}</span></div>` : '';
-  const clickAttr = opts.clickable ? `onclick="openPersonModal('${name.replace(/'/g,"\\'")}')" style="cursor:pointer;"` : '';
-  return `<div class="people-card" ${clickAttr}>
+  const clickAttr = opts.clickable ? `data-person="${name.replace(/"/g,'&quot;')}"` : '';
+  return `<div class="people-card" ${clickAttr} ${opts.clickable ? 'style="cursor:pointer;"' : ''}>
     <div class="bar">${name}</div>
     <div class="avatar-wrap">${avatarHTML(name,64)}</div>
     <div class="big"><div class="num">${fmtCurrencyShort(stats.valor)}</div><div class="lbl">vendido no período</div></div>
@@ -1037,6 +1037,10 @@ function openPersonModal(name){
     document.getElementById('chartPersonTrend').parentElement.innerHTML = '<div style="color:var(--muted);font-size:12px;padding:20px;text-align:center;">Gráfico indisponível no momento — os números abaixo continuam corretos.</div>';
   }
 }
+document.getElementById('comprasGrid').addEventListener('click', (e)=>{
+  const card = e.target.closest('[data-person]');
+  if(card) openPersonModal(card.dataset.person);
+});
 document.getElementById('btnCloseModal').addEventListener('click', ()=>{ document.getElementById('personModalOverlay').style.display = 'none'; });
 document.getElementById('personModalOverlay').addEventListener('click', (e)=>{ if(e.target.id==='personModalOverlay') e.currentTarget.style.display='none'; });
 
