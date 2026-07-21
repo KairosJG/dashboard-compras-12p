@@ -271,7 +271,7 @@ window._libsReady = Promise.allSettled([
     <h3 id="modalTitle" style="font-size:16px;color:var(--gold);">Evolução</h3>
     <div class="chart-box" style="height:220px;"><canvas id="chartPersonTrend"></canvas></div>
     <table style="margin-top:14px;">
-      <thead><tr><th>Mês</th><th>Vendido</th><th>Conversões</th><th>Indicações</th><th>Ganho (USD)</th></tr></thead>
+      <thead><tr><th>Mês</th><th>Vendido</th><th>Conversões</th><th>Indicações</th><th id="modalTrendHead">Ganho (USD)</th></tr></thead>
       <tbody id="modalTrendBody"></tbody>
     </table>
   </div>
@@ -1238,18 +1238,29 @@ function monthLabel(key){
 }
 function openPersonModal(name){
   const keys = last3MonthKeys();
+  const useCustom = HIDE_GANHO_FOR.includes(name) && (state.customMetrics[name]||[]).length>0;
+  const customLabel = useCustom ? state.customMetrics[name][0].label : null;
   const rows = keys.map(key=>{
     const [y,m] = key.split('-').map(Number);
     const monthSales = state.sales.filter(s=>s.valor>=0 && s.date.getFullYear()===y && s.date.getMonth()===m-1 && s.names.includes(name));
     const valor = monthSales.reduce((a,s)=>a+s.valor,0);
     const conv = monthSales.reduce((a,s)=>a+1,0);
     const indic = state.indicacoes.filter(it=>it.compras===name && it.date.getFullYear()===y && it.date.getMonth()===m-1).length;
-    const ganho = state.handovers.filter(h=>h.compras===name && h.date && h.date.getFullYear()===y && h.date.getMonth()===m-1).reduce((a,h)=>a+h.ganhoUsd,0);
-    return {key, valor, conv, indic, ganho};
+    let lastCol;
+    if(useCustom){
+      const entries = (state.customMetrics[name]||[]).filter(cm=>cm.label===customLabel && cm.date.getFullYear()===y && cm.date.getMonth()===m-1);
+      const latest = entries.sort((a,b)=>b.date-a.date)[0];
+      lastCol = latest ? `${latest.atual!=null?latest.atual:'—'}${latest.meta!=null?' / '+latest.meta:''}` : '—';
+    } else {
+      const ganho = state.handovers.filter(h=>h.compras===name && h.date && h.date.getFullYear()===y && h.date.getMonth()===m-1).reduce((a,h)=>a+h.ganhoUsd,0);
+      lastCol = fmtUSD(ganho);
+    }
+    return {key, valor, conv, indic, lastCol};
   });
   document.getElementById('modalTitle').textContent = `Evolução — ${name}`;
+  document.getElementById('modalTrendHead').textContent = useCustom ? customLabel : 'Ganho (USD)';
   document.getElementById('modalTrendBody').innerHTML = rows.map(r=>
-    `<tr><td>${monthLabel(r.key)}</td><td>${fmtCurrency(r.valor)}</td><td>${r.conv}</td><td>${r.indic}</td><td>${fmtUSD(r.ganho)}</td></tr>`
+    `<tr><td>${monthLabel(r.key)}</td><td>${fmtCurrency(r.valor)}</td><td>${r.conv}</td><td>${r.indic}</td><td>${r.lastCol}</td></tr>`
   ).join('');
   document.getElementById('personModalOverlay').style.display = 'flex';
   if(typeof Chart !== 'undefined'){
