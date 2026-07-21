@@ -191,6 +191,14 @@ window._libsReady = Promise.allSettled([
       </table>
     </div>
     <div class="card">
+      <h3>Tempo de entrega — Compras</h3>
+      <p class="hint">Quanto menor, melhor. Atualizado manualmente toda semana com base no Monday.</p>
+      <table>
+        <thead><tr><th>Consultor(a)</th><th>Meta</th><th>Atual</th><th>Status</th></tr></thead>
+        <tbody id="tempoEntregaBody"></tbody>
+      </table>
+    </div>
+    <div class="card">
       <h3>Vendedores não classificados</h3>
       <p class="hint">Apareceram na planilha mas ainda não estão em nenhuma lista (Hunter/Farmer/XP). Mapeie em Configurações.</p>
       <table>
@@ -243,10 +251,24 @@ window._libsReady = Promise.allSettled([
 
 </div>
 
+<div id="personModalOverlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:100;align-items:center;justify-content:center;padding:20px;">
+  <div class="card" style="max-width:640px;width:100%;max-height:85vh;overflow-y:auto;position:relative;">
+    <button class="small-btn" id="btnCloseModal" style="position:absolute;top:14px;right:14px;">fechar ✕</button>
+    <h3 id="modalTitle" style="font-size:16px;color:var(--gold);">Evolução</h3>
+    <div class="chart-box" style="height:220px;"><canvas id="chartPersonTrend"></canvas></div>
+    <table style="margin-top:14px;">
+      <thead><tr><th>Mês</th><th>Vendido</th><th>Conversões</th><th>Indicações</th></tr></thead>
+      <tbody id="modalTrendBody"></tbody>
+    </table>
+  </div>
+</div>
+
 <script>
 const GOALS_CSV = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vR3O2y8LsZD7lnm1Hw_wfZoYJek_fjKfNjtjnxMix1KwD4pHcll1_J7MXCrl6Kc86DOdu_11YhJxxXa/pub?output=csv';
 const SALES_CSV = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vR3O2y8LsZD7lnm1Hw_wfZoYJek_fjKfNjtjnxMix1KwD4pHcll1_J7MXCrl6Kc86DOdu_11YhJxxXa/pub?gid=1071860344&single=true&output=csv';
 const METAS_CSV = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vR3O2y8LsZD7lnm1Hw_wfZoYJek_fjKfNjtjnxMix1KwD4pHcll1_J7MXCrl6Kc86DOdu_11YhJxxXa/pub?gid=2049238854&single=true&output=csv';
+const INDICACOES_CSV = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSFhnfuMuziMHTxmFsPVTxT6vyhrzuNT7X8Mo7zWS77YwUlET9lXCkPNWnrDRUsMyLbEAuSIOPsdzaf/pub?gid=0&single=true&output=csv';
+const TEMPO_ENTREGA_CSV = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vR3O2y8LsZD7lnm1Hw_wfZoYJek_fjKfNjtjnxMix1KwD4pHcll1_J7MXCrl6Kc86DOdu_11YhJxxXa/pub?gid=50455619&single=true&output=csv';
 
 const APPROVED_CONSULTANTS = ['Malu','Beatriz Alcara','Rafael "Chelo" Teixeira','Mariana Estevão','Matheus Rocha','João Pedro','JP Brasil','Kevin'];
 const HUNTERS = ['Jayanne','Monique','Thiago','Maira','Duymi'];
@@ -288,7 +310,7 @@ const DEFAULT_VENDOR_ALIASES = {
 };
 
 let state = {
-  sales: [], goals: [], metas: {}, aliasMap: {}, vendorAliasMap: {},
+  sales: [], goals: [], metas: {}, indicacoes: [], tempoEntrega: [], aliasMap: {}, vendorAliasMap: {},
   charts: {}, defaultsApplied: false
 };
 
@@ -496,6 +518,51 @@ function loadMetas(csvText){
   state.metas = metas;
 }
 
+// ---------- indicações de produto parsing (Mes, Data, Projeto, Compras, Consultor, Produto, Lógica) ----------
+function loadIndicacoes(csvText){
+  yearTracker = {lastMonth:null, year:2025};
+  const rows = parseCSV(csvText);
+  const out = [];
+  for(let i=1;i<rows.length;i++){
+    const row = rows[i];
+    if(!row || row.length<5) continue;
+    const mes = row[0];
+    const dateStr = row[1];
+    const comprasRaw = (row[3]||'').toString().trim();
+    const consultorRaw = (row[4]||'').toString().trim();
+    const produto = (row[5]||'').toString().trim();
+    if(!comprasRaw || !produto) continue;
+    const date = parseSaleDate(dateStr, mes);
+    const compras = canonicalName(comprasRaw);
+    if(!compras || !date) continue;
+    out.push({ date, compras, consultor: consultorRaw, produto });
+  }
+  state.indicacoes = out;
+}
+
+// ---------- tempo de entrega parsing (Data, Nome, Meta, Atual) — lower is better ----------
+function loadTempoEntrega(csvText){
+  const rows = parseCSV(csvText);
+  const out = [];
+  for(let i=1;i<rows.length;i++){
+    const row = rows[i];
+    if(!row || row.length<3) continue;
+    const dateStr = (row[0]||'').toString().trim();
+    const nomeRaw = (row[1]||'').toString().trim();
+    const metaRaw = row[2];
+    const atualRaw = row[3];
+    if(!dateStr || !nomeRaw) continue;
+    const nome = canonicalName(nomeRaw);
+    if(!nome) continue;
+    const date = new Date(dateStr);
+    if(isNaN(date.getTime())) continue;
+    const meta = parseBRNumber(metaRaw);
+    const atual = (atualRaw!==undefined && atualRaw!==null && String(atualRaw).trim()!=='') ? parseBRNumber(atualRaw) : null;
+    out.push({ date, nome, meta: metaRaw ? meta : null, atual });
+  }
+  state.tempoEntrega = out;
+}
+
 // ---------- sales parsing ----------
 let yearTracker = {lastMonth:null, year:2025};
 function inferYear(monthNum){
@@ -566,6 +633,20 @@ async function loadAllData(){
     }catch(metaErr){
       console.warn('Metas sheet not loaded:', metaErr);
       state.metas = {};
+    }
+    try{
+      const indicacoesText = await fetchCSVText(INDICACOES_CSV);
+      loadIndicacoes(indicacoesText);
+    }catch(indErr){
+      console.warn('Indicações sheet not loaded:', indErr);
+      state.indicacoes = [];
+    }
+    try{
+      const tempoText = await fetchCSVText(TEMPO_ENTREGA_CSV);
+      loadTempoEntrega(tempoText);
+    }catch(tempoErr){
+      console.warn('Tempo de entrega sheet not loaded:', tempoErr);
+      state.tempoEntrega = [];
     }
   }catch(e){
     console.error(e);
@@ -650,6 +731,21 @@ function paceFraction(){
   return Math.min(1, today.getDate()/daysInMonth);
 }
 
+function getFilteredIndicacoes(){
+  const from = document.getElementById('fDateFrom').value ? new Date(document.getElementById('fDateFrom').value) : null;
+  const to = document.getElementById('fDateTo').value ? new Date(document.getElementById('fDateTo').value) : null;
+  return state.indicacoes.filter(s=>{
+    if(from && s.date < from) return false;
+    if(to){ const toEnd = new Date(to); toEnd.setHours(23,59,59,999); if(s.date > toEnd) return false; }
+    return true;
+  });
+}
+function computeIndicacoesStats(filteredIndicacoes){
+  const byC = {}; for(const n of APPROVED_CONSULTANTS) byC[n] = 0;
+  for(const it of filteredIndicacoes){ if(byC[it.compras]==null) byC[it.compras]=0; byC[it.compras]++; }
+  return byC;
+}
+
 // ---------- render ----------
 function renderAll(){
   updateMonthPill();
@@ -659,6 +755,7 @@ function renderAll(){
   renderHF(filtered);
   renderTicketTable(filtered);
   renderTeamTotals(filtered);
+  renderTempoEntrega();
   renderOutros(filtered);
   renderCharts(filtered);
   renderSettings();
@@ -705,7 +802,9 @@ function peopleCard(name, stats, metaVal, opts){
     const expected = metaVal * paceFraction();
     paceRow = `<div class="row"><span>Deveria ter vendido</span><span>${fmtCurrencyShort(expected)}</span></div>`;
   }
-  return `<div class="people-card">
+  const indicRow = opts.indicacoes!=null ? `<div class="row"><span>Indicações de produto</span><span>${opts.indicacoes}</span></div>` : '';
+  const clickAttr = opts.clickable ? `onclick="openPersonModal('${name.replace(/'/g,"\\'")}')" style="cursor:pointer;"` : '';
+  return `<div class="people-card" ${clickAttr}>
     <div class="bar">${name}</div>
     <div class="avatar-wrap">${avatarHTML(name,64)}</div>
     <div class="big"><div class="num">${fmtCurrencyShort(stats.valor)}</div><div class="lbl">vendido no período</div></div>
@@ -716,14 +815,17 @@ function peopleCard(name, stats, metaVal, opts){
     <div class="metrics">
       ${opts.showConversoes ? `<div class="row"><span>Conversões</span><span>${stats.count}</span></div>` : `<div class="row"><span>Nº vendas</span><span>${stats.count}</span></div>`}
       ${metaVal!=null ? `<div class="row"><span>Meta do mês</span><span>${fmtCurrencyShort(metaVal)}</span></div><div class="row"><span>% da meta atingido</span><span>${pct}%</span></div>${paceRow}` : `<div class="row"><span>Meta do mês</span><span>não definida</span></div>`}
+      ${indicRow}
     </div>
+    ${opts.clickable ? '<div style="text-align:center;font-size:10px;color:var(--muted);padding:0 0 10px;">clique para ver evolução</div>' : ''}
   </div>`;
 }
 
 function renderCompras(filtered){
   const stats = computeConsultantStats(filtered);
+  const indic = computeIndicacoesStats(getFilteredIndicacoes());
   document.getElementById('comprasGrid').innerHTML = APPROVED_CONSULTANTS.map(name=>
-    peopleCard(name, stats[name], getMeta('compras', name), {showConversoes:true, showPace:true})
+    peopleCard(name, stats[name], getMeta('compras', name), {showConversoes:true, showPace:true, indicacoes: indic[name]||0, clickable:true})
   ).join('');
 }
 function renderHF(filtered){
@@ -741,6 +843,22 @@ function renderTicketTable(filtered){
     return `<tr><td>${name}</td><td>${s.count}</td><td>${fmtCurrency(s.valor)}</td><td>${fmtCurrency(ticket)}</td></tr>`;
   }).join('');
 }
+function renderTempoEntrega(){
+  const latestByName = {};
+  for(const it of state.tempoEntrega){
+    if(!latestByName[it.nome] || it.date > latestByName[it.nome].date) latestByName[it.nome] = it;
+  }
+  document.getElementById('tempoEntregaBody').innerHTML = APPROVED_CONSULTANTS.map(name=>{
+    const it = latestByName[name];
+    if(!it || it.atual==null){
+      return `<tr><td>${name}</td><td>${it&&it.meta!=null?it.meta:'—'}</td><td style="color:var(--muted);">sem dado</td><td>—</td></tr>`;
+    }
+    const good = it.meta!=null ? it.atual <= it.meta : null;
+    const badge = good==null ? '' : (good ? '<span style="color:var(--good);font-weight:700;">dentro da meta</span>' : '<span style="color:var(--bad);font-weight:700;">acima da meta</span>');
+    return `<tr><td>${name}</td><td>${it.meta!=null?it.meta:'—'}</td><td style="font-weight:700;">${it.atual}</td><td>${badge}</td></tr>`;
+  }).join('');
+}
+
 function renderOutros(filtered){
   const byV = {};
   for(const s of filtered){ if(s.vendedorGroup==='outros'){ if(!byV[s.vendedorName]) byV[s.vendedorName]={count:0,valor:0}; byV[s.vendedorName].count++; byV[s.vendedorName].valor+=s.valor; } }
@@ -866,6 +984,51 @@ function renderMetasReadonly(){
   document.getElementById('metasReadonlyWrap').innerHTML = html;
 }
 document.getElementById('metaMonth').addEventListener('change', renderMetasReadonly);
+
+// ---------- person 3-month trend modal ----------
+function last3MonthKeys(){
+  const now = new Date();
+  const keys = [];
+  for(let i=2;i>=0;i--){
+    const d = new Date(now.getFullYear(), now.getMonth()-i, 1);
+    keys.push(`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`);
+  }
+  return keys;
+}
+function monthLabel(key){
+  const [y,m] = key.split('-').map(Number);
+  const names = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+  return `${names[m-1]}/${y}`;
+}
+function openPersonModal(name){
+  const keys = last3MonthKeys();
+  const rows = keys.map(key=>{
+    const [y,m] = key.split('-').map(Number);
+    const monthSales = state.sales.filter(s=>s.valor>=0 && s.date.getFullYear()===y && s.date.getMonth()===m-1 && s.names.includes(name));
+    const valor = monthSales.reduce((a,s)=>a+s.valor,0);
+    const conv = monthSales.reduce((a,s)=>a+1,0);
+    const indic = state.indicacoes.filter(it=>it.compras===name && it.date.getFullYear()===y && it.date.getMonth()===m-1).length;
+    return {key, valor, conv, indic};
+  });
+  document.getElementById('modalTitle').textContent = `Evolução — ${name}`;
+  document.getElementById('modalTrendBody').innerHTML = rows.map(r=>
+    `<tr><td>${monthLabel(r.key)}</td><td>${fmtCurrency(r.valor)}</td><td>${r.conv}</td><td>${r.indic}</td></tr>`
+  ).join('');
+  document.getElementById('personModalOverlay').style.display = 'flex';
+  if(typeof Chart !== 'undefined'){
+    destroyChart('personTrend');
+    state.charts.personTrend = new Chart(document.getElementById('chartPersonTrend'), {
+      type:'line',
+      data:{ labels: rows.map(r=>monthLabel(r.key)), datasets:[{ label:'Vendido', data: rows.map(r=>r.valor), borderColor:'#FFC72C', backgroundColor:'rgba(255,199,44,.15)', tension:.3, fill:true }] },
+      options:{ responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}},
+        scales:{ x:{ticks:{color:'#9a9a9f'},grid:{color:'#2a2a2e'}}, y:{ticks:{color:'#9a9a9f'},grid:{color:'#2a2a2e'}} } }
+    });
+  } else {
+    document.getElementById('chartPersonTrend').parentElement.innerHTML = '<div style="color:var(--muted);font-size:12px;padding:20px;text-align:center;">Gráfico indisponível no momento — os números abaixo continuam corretos.</div>';
+  }
+}
+document.getElementById('btnCloseModal').addEventListener('click', ()=>{ document.getElementById('personModalOverlay').style.display = 'none'; });
+document.getElementById('personModalOverlay').addEventListener('click', (e)=>{ if(e.target.id==='personModalOverlay') e.currentTarget.style.display='none'; });
 
 // ---------- tabs ----------
 document.querySelectorAll('.tab').forEach(tab=>{
