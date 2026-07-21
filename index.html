@@ -247,7 +247,7 @@ const GOALS_CSV = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vR3O2y8LsZD7l
 const SALES_CSV = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vR3O2y8LsZD7lnm1Hw_wfZoYJek_fjKfNjtjnxMix1KwD4pHcll1_J7MXCrl6Kc86DOdu_11YhJxxXa/pub?gid=1071860344&single=true&output=csv';
 const METAS_CSV = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vR3O2y8LsZD7lnm1Hw_wfZoYJek_fjKfNjtjnxMix1KwD4pHcll1_J7MXCrl6Kc86DOdu_11YhJxxXa/pub?gid=2049238854&single=true&output=csv';
 
-const APPROVED_CONSULTANTS = ['Laura','Malu','Beatriz Alcara','Rafael "Chelo" Teixeira','Mariana Estevão','Matheus Rocha','João Pedro','JP Brasil','Kevin'];
+const APPROVED_CONSULTANTS = ['Malu','Beatriz Alcara','Rafael "Chelo" Teixeira','Mariana Estevão','Matheus Rocha','João Pedro','JP Brasil','Kevin'];
 const HUNTERS = ['Jayanne','Monique','Thiago','Maira','Duymi'];
 const FARMERS = ['Pablo','Raul','Ana Carolina','Victor Hugo (Choco)','Andres','Roberto','Danilo','Fernando Finatto'];
 const XP = ['Amarylis Silva','Diana Silva'];
@@ -257,7 +257,7 @@ const XP = ['Amarylis Silva','Diana Silva'];
 // in the Sheet (with a protected range), never inside this page.
 
 const DEFAULT_ALIASES = {
-  'laura':'Laura','malu':'Malu','maria barros':'Malu',
+  'malu':'Malu','maria barros':'Malu',
   'beatriz':'Beatriz Alcara','beatriz alcara':'Beatriz Alcara','bea':'Beatriz Alcara',
   'rafael':'Rafael "Chelo" Teixeira','chelo':'Rafael "Chelo" Teixeira','tchelo':'Rafael "Chelo" Teixeira','rafa':'Rafael "Chelo" Teixeira',
   'rafael chelo texeira':'Rafael "Chelo" Teixeira','rafael "chelo" texeira':'Rafael "Chelo" Teixeira',
@@ -351,16 +351,48 @@ function vendorCanonical(raw){
 }
 
 // ---------------------------------------------------------------------
-// Real logo/photos: put files in your GitHub repo and list them here.
-// If a file is missing or fails to load, it falls back automatically
-// to the text logo / initials avatar — nothing breaks.
+// Real logo/photos: upload files to your GitHub repo (root for the logo,
+// a "fotos/" folder for people) using the slugs below. Any of .jpg/.jpeg/.png
+// works — the site tries each automatically. Missing files fall back
+// silently to the text logo / initials avatar.
 // ---------------------------------------------------------------------
-const LOGO_IMAGE = 'logo-12p.png'; // put this file next to index.html
-const AVATAR_IMAGES = {
-  // 'Malu': 'fotos/malu.jpg',
-  // 'Beatriz Alcara': 'fotos/beatriz-alcara.jpg',
-  // add one line per person once you upload their photo to a "fotos/" folder
+const LOGO_CANDIDATES = ['logo-12p.png','logo-12p.jpg','logo-12p.jpeg','logo-12p.svg'];
+const NAME_SLUGS = {
+  'Malu':'malu','Beatriz Alcara':'beatriz-alcara','Rafael "Chelo" Teixeira':'rafael-chelo',
+  'Mariana Estevão':'mariana-estevao','Matheus Rocha':'matheus-rocha','João Pedro':'joao-pedro','JP Brasil':'jp-brasil','Kevin':'kevin',
+  'Jayanne':'jayanne','Monique':'monique','Thiago':'thiago','Maira':'maira','Duymi':'duymi',
+  'Pablo':'pablo','Raul':'raul','Ana Carolina':'ana-carolina','Victor Hugo (Choco)':'victor-hugo-choco',
+  'Andres':'andres','Roberto':'roberto','Danilo':'danilo','Fernando Finatto':'fernando-finatto',
+  'Amarylis Silva':'amarylis-silva','Diana Silva':'diana-silva'
 };
+const PHOTO_EXTENSIONS = ['jpg','jpeg','png','JPG','JPEG','PNG'];
+// Exact filenames for photos already uploaded with names that don't match the slug pattern
+// (spaces, different capitalization, or missing last name). Add more here as needed.
+const PHOTO_OVERRIDES = {
+  'Ana Carolina': 'fotos/Ana Carolina.jpg',
+  'Beatriz Alcara': 'fotos/beatriz.png',
+  'Diana Silva': 'fotos/diana.png',
+  'Fernando Finatto': 'fotos/Fernando.png',
+  'João Pedro': 'fotos/Joao pedro.png',
+  'JP Brasil': 'fotos/Jp brasil.jpg',
+  'Mariana Estevão': 'fotos/mariana.png',
+  'Matheus Rocha': 'fotos/matheus.png',
+  'Rafael "Chelo" Teixeira': 'fotos/rafael.png'
+};
+window._avatarCandidates = {};
+function handleAvatarError(img){
+  const cid = img.dataset.cid;
+  const candidates = window._avatarCandidates[cid] || [];
+  const idx = parseInt(img.dataset.idx,10) + 1;
+  if(idx < candidates.length){
+    img.dataset.idx = idx;
+    img.src = candidates[idx];
+  } else {
+    const name = img.dataset.name;
+    img.parentElement.innerHTML = avatarInitials(name);
+    img.parentElement.style.background = avatarColor(name);
+  }
+}
 
 function avatarInitials(name){
   const parts = name.replace(/["()]/g,'').split(/\s+/).filter(Boolean);
@@ -373,12 +405,20 @@ function avatarColor(name){
   return `hsl(${hue} 85% 55%)`;
 }
 function avatarHTML(name, size){
-  const img = AVATAR_IMAGES[name];
-  const fallback = `this.parentElement.innerHTML='${avatarInitials(name)}';this.parentElement.style.background='${avatarColor(name)}';`;
-  if(img){
-    return `<div class="avatar" style="width:${size}px;height:${size}px;font-size:${size*0.36}px;"><img src="${img}" onerror="${fallback}"></div>`;
+  const slug = NAME_SLUGS[name];
+  const override = PHOTO_OVERRIDES[name];
+  let candidates = [];
+  if(override) candidates.push(override);
+  if(slug) candidates.push(...PHOTO_EXTENSIONS.map(ext => `fotos/${slug}.${ext}`));
+  if(candidates.length === 0){
+    return `<div class="avatar" style="width:${size}px;height:${size}px;background:${avatarColor(name)};font-size:${size*0.36}px;">${avatarInitials(name)}</div>`;
   }
-  return `<div class="avatar" style="width:${size}px;height:${size}px;background:${avatarColor(name)};font-size:${size*0.36}px;">${avatarInitials(name)}</div>`;
+  candidates = candidates.map(c => encodeURI(c));
+  const cid = 'av_' + (slug||'x') + '_' + Math.random().toString(36).slice(2,7);
+  window._avatarCandidates[cid] = candidates;
+  return `<div class="avatar" style="width:${size}px;height:${size}px;font-size:${size*0.36}px;">
+    <img data-idx="0" data-cid="${cid}" data-name="${name.replace(/"/g,'&quot;')}" src="${candidates[0]}" onerror="handleAvatarError(this)">
+  </div>`;
 }
 
 // ---------- fetch ----------
@@ -857,12 +897,18 @@ document.querySelector('.logo').addEventListener('click', ()=>{
 
 window._libsReady.then(()=>{ loadAllData(); });
 
-// try to load the real logo image; keep the text badge if it's missing
+// try to load the real logo image (tries png/jpg/jpeg/svg); keeps the text badge if none exist
 (function(){
-  const test = new Image();
-  test.onload = ()=>{ document.getElementById('logoEl').innerHTML = `<img src="${LOGO_IMAGE}">`; };
-  test.onerror = ()=>{}; // keep the "12P" text badge
-  test.src = LOGO_IMAGE;
+  let i = 0;
+  function tryNext(){
+    if(i >= LOGO_CANDIDATES.length) return; // keep the "12P" text badge
+    const test = new Image();
+    const src = LOGO_CANDIDATES[i++];
+    test.onload = ()=>{ document.getElementById('logoEl').innerHTML = `<img src="${src}">`; };
+    test.onerror = tryNext;
+    test.src = src;
+  }
+  tryNext();
 })();
 </script>
 </body>
