@@ -208,7 +208,7 @@ window._libsReady = Promise.allSettled([
       <h3>Handover de projetos (ganho)</h3>
       <p class="hint">Data do handover, projeto, lead, valor da invoice e se foi ganho — no período selecionado.</p>
       <table>
-        <thead><tr><th>Data</th><th>Projeto</th><th>Lead</th><th>Valor invoice</th><th>Ganho</th><th>Compras</th><th>Link</th></tr></thead>
+        <thead><tr><th>Data</th><th>Projeto</th><th>Lead</th><th>Valor invoice</th><th>Ganho (USD)</th><th>Compras</th><th>Link</th></tr></thead>
         <tbody id="handoverBody"></tbody>
       </table>
     </div>
@@ -271,7 +271,7 @@ window._libsReady = Promise.allSettled([
     <h3 id="modalTitle" style="font-size:16px;color:var(--gold);">Evolução</h3>
     <div class="chart-box" style="height:220px;"><canvas id="chartPersonTrend"></canvas></div>
     <table style="margin-top:14px;">
-      <thead><tr><th>Mês</th><th>Vendido</th><th>Conversões</th><th>Indicações</th></tr></thead>
+      <thead><tr><th>Mês</th><th>Vendido</th><th>Conversões</th><th>Indicações</th><th>Ganho (USD)</th></tr></thead>
       <tbody id="modalTrendBody"></tbody>
     </table>
   </div>
@@ -333,6 +333,19 @@ let state = {
 // ---------- helpers ----------
 function stripAccents(s){ return s.normalize('NFD').replace(/[\u0300-\u036f]/g,''); }
 function normKey(s){ if(!s) return ''; return stripAccents(String(s)).toLowerCase().replace(/["']/g,'').replace(/\s+/g,' ').trim(); }
+function parseCurrencyNumber(s){
+  if(s===undefined||s===null||s==='') return 0;
+  let str = String(s).trim(); if(str==='') return 0;
+  str = str.replace(/[^\d.,-]/g,'');
+  str = str.replace(/\./g,'').replace(',','.');
+  const n = parseFloat(str); return isNaN(n)?0:n;
+}
+function fmtUSD(n){ return '$' + n.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}); }
+function fmtUSDShort(n){
+  if(Math.abs(n)>=1000000) return '$'+(n/1000000).toFixed(1)+'M';
+  if(Math.abs(n)>=1000) return '$'+(n/1000).toFixed(0)+'k';
+  return '$'+n.toFixed(0);
+}
 function parseBRNumber(s){
   if(s===undefined||s===null||s==='') return 0;
   let str = String(s).trim(); if(str==='') return 0;
@@ -446,6 +459,22 @@ function avatarColor(name){
   const hue = 38 + (hash % 25);
   return `hsl(${hue} 85% 55%)`;
 }
+function gaugeSVG(pct, color){
+  const size = 150, radius = size/2 - 12, cx = size/2, cy = size/2;
+  const clamped = Math.max(0, Math.min(100, pct==null?0:pct));
+  const circumference = Math.PI * radius;
+  const offset = circumference * (1 - clamped/100);
+  const label = pct==null ? '—' : pct+'%';
+  return `<div style="display:flex;justify-content:center;padding:10px 0 0;">
+    <svg width="${size}" height="${size/2+22}" viewBox="0 0 ${size} ${size/2+22}">
+      <path d="M 12 ${cy} A ${radius} ${radius} 0 0 1 ${size-12} ${cy}" fill="none" stroke="#2a2a2e" stroke-width="14" stroke-linecap="round"/>
+      <path d="M 12 ${cy} A ${radius} ${radius} 0 0 1 ${size-12} ${cy}" fill="none" stroke="${color}" stroke-width="14" stroke-linecap="round"
+        stroke-dasharray="${circumference}" stroke-dashoffset="${offset}"/>
+      <text x="${cx}" y="${cy-4}" text-anchor="middle" font-size="24" font-weight="800" fill="${color}">${label}</text>
+    </svg>
+  </div>`;
+}
+
 function avatarHTML(name, size){
   const slug = NAME_SLUGS[name];
   const override = PHOTO_OVERRIDES[name];
@@ -557,16 +586,16 @@ function loadHandovers(csvText){
     const dateStr = (row[0]||'').toString().trim();
     const projeto = (row[1]||'').toString().trim();
     const lead = (row[2]||'').toString().trim();
-    const valorRaw = row[3];
-    const ganhoRaw = (row[4]||'').toString().trim();
+    const invoiceRaw = row[3];
+    const ganhoRaw = row[4];
     const comprasRaw = (row[5]||'').toString().trim();
     const link = (row[6]||'').toString().trim();
     if(!projeto) continue;
     const date = parseFlexibleDate(dateStr);
-    const valor = parseBRNumber(valorRaw);
-    const ganho = /^(sim|ganho|won|true|1|s)$/i.test(ganhoRaw);
+    const valorInvoice = parseCurrencyNumber(invoiceRaw);
+    const ganhoUsd = parseCurrencyNumber(ganhoRaw);
     const compras = comprasRaw ? (canonicalName(comprasRaw) || comprasRaw) : '';
-    out.push({ date, projeto, lead, valor, ganho, ganhoRaw, compras, link });
+    out.push({ date, projeto, lead, valorInvoice, ganhoUsd, compras, link });
   }
   state.handovers = out;
 }
@@ -877,7 +906,7 @@ function computeVendorStats(filtered, group){
 
 function computeGanhoStats(filteredHandovers){
   const byC = {}; for(const n of APPROVED_CONSULTANTS) byC[n] = 0;
-  for(const h of filteredHandovers){ if(h.ganho && h.compras && byC[h.compras]!=null) byC[h.compras] += h.valor; }
+  for(const h of filteredHandovers){ if(h.compras && byC[h.compras]!=null) byC[h.compras] += h.ganhoUsd; }
   return byC;
 }
 
@@ -905,8 +934,8 @@ function peopleCard(name, stats, metaVal, opts){
     const gPctClamped = gPct!=null ? Math.min(100,gPct) : null;
     const gBarColor = gPct==null ? 'var(--gold)' : (gPct>=100 ? 'var(--good)' : (gPct < (paceFraction()*100-15) ? 'var(--bad)' : 'var(--gold)'));
     ganhoBlock = `<div class="big" style="padding:2px 14px 6px;">
-      <div class="num" style="font-size:16px;">${fmtCurrencyShort(opts.ganhoValor)}</div>
-      <div class="lbl">ganho no período</div>
+      <div class="num" style="font-size:16px;">${fmtUSDShort(opts.ganhoValor)}</div>
+      <div class="lbl">ganho no período (USD)</div>
     </div>
     ${gMeta ? `<div style="display:flex;align-items:center;gap:8px;margin:0 14px 12px;">
       <div class="progress" style="flex:1;"><div style="width:${gPctClamped}%;background:${gBarColor};"></div></div>
@@ -984,11 +1013,8 @@ function renderMetaGeral(filtered){
     const barColor = pct==null ? 'var(--gold)' : (pct>=100 ? 'var(--good)' : (pct < (paceFraction()*100-15) ? 'var(--bad)' : 'var(--gold)'));
     return `<div class="people-card">
       <div class="bar">${label}</div>
-      <div class="big" style="padding-top:24px;"><div class="num">${fmtCurrencyShort(valor)}</div><div class="lbl">vendido no período</div></div>
-      ${metaTotal ? `<div style="display:flex;align-items:center;gap:8px;margin:0 14px 12px;">
-        <div class="progress" style="flex:1;"><div style="width:${pctClamped}%;background:${barColor};"></div></div>
-        <span style="font-size:11px;font-weight:800;color:${barColor};min-width:36px;text-align:right;">${pct}%</span>
-      </div>` : ''}
+      ${gaugeSVG(pct, barColor)}
+      <div class="big" style="padding-top:0;"><div class="num">${fmtCurrencyShort(valor)}</div><div class="lbl">vendido no período</div></div>
       <div class="metrics">
         <div class="row"><span>Meta total do time</span><span>${metaTotal ? fmtCurrencyShort(metaTotal) : 'não definida'}</span></div>
         ${metaTotal ? `<div class="row"><span>Deveria ter vendido</span><span>${fmtCurrencyShort(deveriaTer)}</span></div>` : ''}
@@ -996,20 +1022,16 @@ function renderMetaGeral(filtered){
     </div>`;
   }).join('');
 
-  const ganhoTotal = getFilteredHandovers().filter(h=>h.ganho).reduce((a,h)=>a+h.valor,0);
+  const ganhoTotal = getFilteredHandovers().reduce((a,h)=>a+h.ganhoUsd,0);
   const ganhoMeta = getMeta('compras - ganho','Ganho Total');
   const gPct = ganhoMeta ? Math.round((ganhoTotal/ganhoMeta)*100) : null;
-  const gPctClamped = gPct!=null ? Math.min(100,gPct) : null;
   const gBarColor = gPct==null ? 'var(--gold)' : (gPct>=100 ? 'var(--good)' : (gPct < (paceFraction()*100-15) ? 'var(--bad)' : 'var(--gold)'));
   html += `<div class="people-card">
     <div class="bar">Ganho (handover)</div>
-    <div class="big" style="padding-top:24px;"><div class="num">${fmtCurrencyShort(ganhoTotal)}</div><div class="lbl">total ganho no período</div></div>
-    ${ganhoMeta ? `<div style="display:flex;align-items:center;gap:8px;margin:0 14px 12px;">
-      <div class="progress" style="flex:1;"><div style="width:${gPctClamped}%;background:${gBarColor};"></div></div>
-      <span style="font-size:11px;font-weight:800;color:${gBarColor};min-width:36px;text-align:right;">${gPct}%</span>
-    </div>` : ''}
+    ${gaugeSVG(gPct, gBarColor)}
+    <div class="big" style="padding-top:0;"><div class="num">${fmtUSDShort(ganhoTotal)}</div><div class="lbl">total ganho no período (USD)</div></div>
     <div class="metrics">
-      <div class="row"><span>Meta de ganho</span><span>${ganhoMeta ? fmtCurrencyShort(ganhoMeta) : 'não definida'}</span></div>
+      <div class="row"><span>Meta de ganho</span><span>${ganhoMeta ? fmtUSDShort(ganhoMeta) : 'não definida'}</span></div>
     </div>
   </div>`;
   document.getElementById('metaGeralGrid').innerHTML = html;
@@ -1049,9 +1071,8 @@ function renderHandovers(){
   });
   document.getElementById('handoverBody').innerHTML = filtered.map(h=>{
     const dataFmt = h.date ? h.date.toLocaleDateString('pt-BR') : '—';
-    const ganhoBadge = h.ganho ? '<span style="color:var(--good);font-weight:700;">Ganho</span>' : `<span style="color:var(--muted);">${h.ganhoRaw||'—'}</span>`;
     const linkHtml = h.link ? `<a href="${h.link}" target="_blank" rel="noopener" style="color:var(--gold);">abrir</a>` : '—';
-    return `<tr><td>${dataFmt}</td><td>${h.projeto}</td><td>${h.lead}</td><td>${fmtCurrency(h.valor)}</td><td>${ganhoBadge}</td><td>${h.compras||'—'}</td><td>${linkHtml}</td></tr>`;
+    return `<tr><td>${dataFmt}</td><td>${h.projeto}</td><td>${h.lead}</td><td>${fmtCurrency(h.valorInvoice)}</td><td style="color:var(--good);font-weight:700;">${fmtUSD(h.ganhoUsd)}</td><td>${h.compras||'—'}</td><td>${linkHtml}</td></tr>`;
   }).join('') || '<tr><td colspan="7" style="color:var(--muted);">Nenhum handover no período (ou a planilha ainda não foi conectada).</td></tr>';
 }
 
@@ -1204,11 +1225,12 @@ function openPersonModal(name){
     const valor = monthSales.reduce((a,s)=>a+s.valor,0);
     const conv = monthSales.reduce((a,s)=>a+1,0);
     const indic = state.indicacoes.filter(it=>it.compras===name && it.date.getFullYear()===y && it.date.getMonth()===m-1).length;
-    return {key, valor, conv, indic};
+    const ganho = state.handovers.filter(h=>h.compras===name && h.date && h.date.getFullYear()===y && h.date.getMonth()===m-1).reduce((a,h)=>a+h.ganhoUsd,0);
+    return {key, valor, conv, indic, ganho};
   });
   document.getElementById('modalTitle').textContent = `Evolução — ${name}`;
   document.getElementById('modalTrendBody').innerHTML = rows.map(r=>
-    `<tr><td>${monthLabel(r.key)}</td><td>${fmtCurrency(r.valor)}</td><td>${r.conv}</td><td>${r.indic}</td></tr>`
+    `<tr><td>${monthLabel(r.key)}</td><td>${fmtCurrency(r.valor)}</td><td>${r.conv}</td><td>${r.indic}</td><td>${fmtUSD(r.ganho)}</td></tr>`
   ).join('');
   document.getElementById('personModalOverlay').style.display = 'flex';
   if(typeof Chart !== 'undefined'){
