@@ -281,11 +281,11 @@ const XP = ['Amarylis Silva','Diana Silva'];
 
 const DEFAULT_ALIASES = {
   'malu':'Malu','maria barros':'Malu',
-  'beatriz':'Beatriz Alcara','beatriz alcara':'Beatriz Alcara','bea':'Beatriz Alcara',
+  'beatriz':'Beatriz Alcara','beatriz alcara':'Beatriz Alcara','bea':'Beatriz Alcara','bia':'Beatriz Alcara',
   'rafael':'Rafael "Chelo" Teixeira','chelo':'Rafael "Chelo" Teixeira','tchelo':'Rafael "Chelo" Teixeira','rafa':'Rafael "Chelo" Teixeira',
   'rafael chelo texeira':'Rafael "Chelo" Teixeira','rafael "chelo" texeira':'Rafael "Chelo" Teixeira',
   'mariana':'Mariana Estevão','mari':'Mariana Estevão','mariana estevao':'Mariana Estevão',
-  'matheus':'Matheus Rocha','matheus rocha':'Matheus Rocha',
+  'matheus':'Matheus Rocha','matheus rocha':'Matheus Rocha','matheys':'Matheus Rocha',
   'joao pedro':'João Pedro','jp':'João Pedro','jp brasil':'JP Brasil',
   'kevin':'Kevin','kevin anjos':'Kevin'
 };
@@ -648,6 +648,12 @@ async function loadAllData(){
       console.warn('Tempo de entrega sheet not loaded:', tempoErr);
       state.tempoEntrega = [];
     }
+    if(state.indicacoes.length === 0 || state.tempoEntrega.length === 0){
+      const missing = [];
+      if(state.indicacoes.length === 0) missing.push('Indicações de produto');
+      if(state.tempoEntrega.length === 0) missing.push('Tempo de entrega');
+      document.getElementById('banners').innerHTML += `<div class="banner err">Não consegui carregar: ${missing.join(', ')}. Os números dessas métricas vão aparecer zerados até isso ser resolvido. Clique em "Atualizar dados" para tentar de novo.</div>`;
+    }
   }catch(e){
     console.error(e);
     document.getElementById('banners').innerHTML = '<div class="banner err">Não consegui carregar os dados da planilha agora (' + (e.message||'erro de rede') + '). Clique em "Atualizar dados" para tentar de novo.</div>';
@@ -655,7 +661,7 @@ async function loadAllData(){
     return;
   }
   document.getElementById('lastUpdated').textContent = 'dados atualizados em ' + new Date().toLocaleString('pt-BR');
-  document.getElementById('dataSourceNote').textContent = state.sales.length + ' vendas carregadas';
+  document.getElementById('dataSourceNote').textContent = `${state.sales.length} vendas · ${state.indicacoes.length} indicações · ${state.tempoEntrega.length} registros de tempo de entrega`;
   try{
     const now = new Date();
     if(!state.defaultsApplied){
