@@ -147,6 +147,7 @@ window._libsReady = Promise.allSettled([
   <div class="tabs">
     <div class="tab active" data-tab="compras">Compras</div>
     <div class="tab" data-tab="hf">Hunters, Farmers &amp; XP</div>
+    <div class="tab" data-tab="metageral">Meta Geral</div>
     <div class="tab" data-tab="avancado">Dados avançados</div>
     <div class="tab" data-tab="settings">Configurações</div>
   </div>
@@ -166,6 +167,11 @@ window._libsReady = Promise.allSettled([
     <div class="section-title">XP</div>
     <p class="hint">Time XP.</p>
     <div class="people-grid" id="xpGrid"></div>
+  </div>
+
+  <div class="tabpanel" id="tab-metageral">
+    <p class="hint">Acompanhamento de meta por setor no período selecionado — valor vendido, ritmo esperado até hoje e meta total do time.</p>
+    <div class="people-grid" id="metaGeralGrid"></div>
   </div>
 
   <div class="tabpanel" id="tab-avancado">
@@ -196,6 +202,14 @@ window._libsReady = Promise.allSettled([
       <table>
         <thead><tr><th>Consultor(a)</th><th>Meta</th><th>Atual</th><th>Status</th></tr></thead>
         <tbody id="tempoEntregaBody"></tbody>
+      </table>
+    </div>
+    <div class="card">
+      <h3>Handover de projetos (ganho)</h3>
+      <p class="hint">Data do handover, projeto, lead, valor da invoice e se foi ganho — no período selecionado.</p>
+      <table>
+        <thead><tr><th>Data</th><th>Projeto</th><th>Lead</th><th>Valor invoice</th><th>Ganho</th><th>Compras</th><th>Link</th></tr></thead>
+        <tbody id="handoverBody"></tbody>
       </table>
     </div>
     <div class="card">
@@ -269,6 +283,7 @@ const SALES_CSV = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vR3O2y8LsZD7l
 const METAS_CSV = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vR3O2y8LsZD7lnm1Hw_wfZoYJek_fjKfNjtjnxMix1KwD4pHcll1_J7MXCrl6Kc86DOdu_11YhJxxXa/pub?gid=2049238854&single=true&output=csv';
 const INDICACOES_CSV = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vR3O2y8LsZD7lnm1Hw_wfZoYJek_fjKfNjtjnxMix1KwD4pHcll1_J7MXCrl6Kc86DOdu_11YhJxxXa/pub?gid=1195570752&single=true&output=csv';
 const TEMPO_ENTREGA_CSV = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vR3O2y8LsZD7lnm1Hw_wfZoYJek_fjKfNjtjnxMix1KwD4pHcll1_J7MXCrl6Kc86DOdu_11YhJxxXa/pub?gid=50455619&single=true&output=csv';
+const HANDOVER_CSV = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vR3O2y8LsZD7lnm1Hw_wfZoYJek_fjKfNjtjnxMix1KwD4pHcll1_J7MXCrl6Kc86DOdu_11YhJxxXa/pub?gid=1726963060&single=true&output=csv';
 
 const APPROVED_CONSULTANTS = ['Malu','Beatriz Alcara','Rafael "Chelo" Teixeira','Mariana Estevão','Matheus Rocha','João Pedro','JP Brasil','Kevin'];
 const HUNTERS = ['Jayanne','Monique','Thiago','Maira','Duymi'];
@@ -311,7 +326,7 @@ const DEFAULT_VENDOR_ALIASES = {
 };
 
 let state = {
-  sales: [], goals: [], metas: {}, indicacoes: [], tempoEntrega: [], aliasMap: {}, vendorAliasMap: {},
+  sales: [], goals: [], metas: {}, indicacoes: [], tempoEntrega: [], customMetrics: {}, handovers: [], aliasMap: {}, vendorAliasMap: {},
   charts: {}, defaultsApplied: false
 };
 
@@ -522,9 +537,43 @@ function loadMetas(csvText){
   state.metas = metas;
 }
 
+// ---------- handover de projetos parsing (Data, Projeto, Lead, Valor Invoice, Ganho, Link) ----------
+function parseFlexibleDate(s){
+  if(!s) return null;
+  s = s.trim();
+  let m = s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);
+  if(m) return new Date(+m[1], +m[2]-1, +m[3]);
+  m = s.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})$/);
+  if(m) return new Date(+m[3], +m[2]-1, +m[1]);
+  const d = new Date(s);
+  return isNaN(d.getTime()) ? null : d;
+}
+function loadHandovers(csvText){
+  const rows = parseCSV(csvText);
+  const out = [];
+  for(let i=1;i<rows.length;i++){
+    const row = rows[i];
+    if(!row || row.length<4) continue;
+    const dateStr = (row[0]||'').toString().trim();
+    const projeto = (row[1]||'').toString().trim();
+    const lead = (row[2]||'').toString().trim();
+    const valorRaw = row[3];
+    const ganhoRaw = (row[4]||'').toString().trim();
+    const comprasRaw = (row[5]||'').toString().trim();
+    const link = (row[6]||'').toString().trim();
+    if(!projeto) continue;
+    const date = parseFlexibleDate(dateStr);
+    const valor = parseBRNumber(valorRaw);
+    const ganho = /^(sim|ganho|won|true|1|s)$/i.test(ganhoRaw);
+    const compras = comprasRaw ? (canonicalName(comprasRaw) || comprasRaw) : '';
+    out.push({ date, projeto, lead, valor, ganho, ganhoRaw, compras, link });
+  }
+  state.handovers = out;
+}
+
 // ---------- indicações de produto parsing (Mes, Data, Projeto, Compras, Consultor, Produto, Lógica) ----------
 function loadIndicacoes(csvText){
-  yearTracker = {lastMonth:null, year:2025};
+  yearTracker = {lastMonth:null, year:2026};
   const rows = parseCSV(csvText);
   const out = [];
   for(let i=1;i<rows.length;i++){
@@ -548,6 +597,7 @@ function loadIndicacoes(csvText){
 function loadTempoEntrega(csvText){
   const rows = parseCSV(csvText);
   const out = [];
+  const custom = {};
   for(let i=1;i<rows.length;i++){
     const row = rows[i];
     if(!row || row.length<3) continue;
@@ -556,15 +606,27 @@ function loadTempoEntrega(csvText){
     const metaRaw = row[2];
     const atualRaw = row[3];
     if(!dateStr || !nomeRaw) continue;
-    const nome = canonicalName(nomeRaw);
-    if(!nome) continue;
     const date = new Date(dateStr);
     if(isNaN(date.getTime())) continue;
     const meta = parseBRNumber(metaRaw);
     const atual = (atualRaw!==undefined && atualRaw!==null && String(atualRaw).trim()!=='') ? parseBRNumber(atualRaw) : null;
+    // rows like "Kevin - cadastro de fornecedor" are a custom one-off metric for that person, not the standard tempo de entrega
+    if(nomeRaw.includes(' - ')){
+      const [personRaw, ...labelParts] = nomeRaw.split(' - ');
+      const person = canonicalName(personRaw.trim());
+      const label = labelParts.join(' - ').trim();
+      if(person && label){
+        if(!custom[person]) custom[person] = [];
+        custom[person].push({ label, meta: metaRaw ? meta : null, atual, date });
+      }
+      continue;
+    }
+    const nome = canonicalName(nomeRaw);
+    if(!nome) continue;
     out.push({ date, nome, meta: metaRaw ? meta : null, atual });
   }
   state.tempoEntrega = out;
+  state.customMetrics = custom;
 }
 
 // ---------- sales parsing ----------
@@ -651,6 +713,15 @@ async function loadAllData(){
     }catch(tempoErr){
       console.warn('Tempo de entrega sheet not loaded:', tempoErr);
       state.tempoEntrega = [];
+    }
+    if(HANDOVER_CSV){
+      try{
+        const handoverText = await fetchCSVText(HANDOVER_CSV);
+        loadHandovers(handoverText);
+      }catch(hErr){
+        console.warn('Handover sheet not loaded:', hErr);
+        state.handovers = [];
+      }
     }
     if(state.indicacoes.length === 0 || state.tempoEntrega.length === 0){
       const missing = [];
@@ -763,9 +834,11 @@ function renderAll(){
   renderKPIs(filtered);
   renderCompras(filtered);
   renderHF(filtered);
+  renderMetaGeral(filtered);
   renderTicketTable(filtered);
   renderTeamTotals(filtered);
   renderTempoEntrega();
+  renderHandovers();
   renderOutros(filtered);
   renderCharts(filtered);
   renderSettings();
@@ -802,6 +875,12 @@ function computeVendorStats(filtered, group){
   return byV;
 }
 
+function computeGanhoStats(filteredHandovers){
+  const byC = {}; for(const n of APPROVED_CONSULTANTS) byC[n] = 0;
+  for(const h of filteredHandovers){ if(h.ganho && h.compras && byC[h.compras]!=null) byC[h.compras] += h.valor; }
+  return byC;
+}
+
 function peopleCard(name, stats, metaVal, opts){
   opts = opts || {};
   const pct = metaVal ? Math.round((stats.valor/metaVal)*100) : null;
@@ -813,29 +892,65 @@ function peopleCard(name, stats, metaVal, opts){
     paceRow = `<div class="row"><span>Deveria ter vendido</span><span>${fmtCurrencyShort(expected)}</span></div>`;
   }
   const indicRow = opts.indicacoes!=null ? `<div class="row"><span>Indicações de produto</span><span>${opts.indicacoes}</span></div>` : '';
+  const customRows = (opts.customMetrics||[]).map(cm=>{
+    const val = cm.atual!=null ? cm.atual : '—';
+    const metaTxt = cm.meta!=null ? ` / ${cm.meta}` : '';
+    return `<div class="row"><span>${cm.label}</span><span>${val}${metaTxt}</span></div>`;
+  }).join('');
   const clickAttr = opts.clickable ? `data-person="${name.replace(/"/g,'&quot;')}"` : '';
+  let ganhoBlock = '';
+  if(opts.ganhoValor!=null){
+    const gMeta = opts.ganhoMeta;
+    const gPct = gMeta ? Math.round((opts.ganhoValor/gMeta)*100) : null;
+    const gPctClamped = gPct!=null ? Math.min(100,gPct) : null;
+    const gBarColor = gPct==null ? 'var(--gold)' : (gPct>=100 ? 'var(--good)' : (gPct < (paceFraction()*100-15) ? 'var(--bad)' : 'var(--gold)'));
+    ganhoBlock = `<div class="big" style="padding:2px 14px 6px;">
+      <div class="num" style="font-size:16px;">${fmtCurrencyShort(opts.ganhoValor)}</div>
+      <div class="lbl">ganho no período</div>
+    </div>
+    ${gMeta ? `<div style="display:flex;align-items:center;gap:8px;margin:0 14px 12px;">
+      <div class="progress" style="flex:1;"><div style="width:${gPctClamped}%;background:${gBarColor};"></div></div>
+      <span style="font-size:11px;font-weight:800;color:${gBarColor};min-width:36px;text-align:right;">${gPct}%</span>
+    </div>` : ''}`;
+  }
   return `<div class="people-card" ${clickAttr} ${opts.clickable ? 'style="cursor:pointer;"' : ''}>
     <div class="bar">${name}</div>
     <div class="avatar-wrap">${avatarHTML(name,64)}</div>
-    <div class="big"><div class="num">${fmtCurrencyShort(stats.valor)}</div><div class="lbl">vendido no período</div></div>
+    <div class="big" style="${opts.ganhoValor!=null ? 'padding-bottom:2px;' : ''}">
+      <div class="num" style="${opts.ganhoValor!=null ? 'font-size:17px;' : ''}">${fmtCurrencyShort(stats.valor)}</div>
+      <div class="lbl">vendido no período</div>
+    </div>
     ${metaVal!=null ? `<div style="display:flex;align-items:center;gap:8px;margin:0 14px 12px;">
       <div class="progress" style="flex:1;"><div style="width:${pctClamped}%;background:${barColor};"></div></div>
       <span style="font-size:11px;font-weight:800;color:${barColor};min-width:36px;text-align:right;">${pct}%</span>
     </div>` : ''}
+    ${ganhoBlock}
     <div class="metrics">
       ${opts.showConversoes ? `<div class="row"><span>Conversões</span><span>${stats.count}</span></div>` : `<div class="row"><span>Nº vendas</span><span>${stats.count}</span></div>`}
       ${metaVal!=null ? `<div class="row"><span>Meta do mês</span><span>${fmtCurrencyShort(metaVal)}</span></div><div class="row"><span>% da meta atingido</span><span>${pct}%</span></div>${paceRow}` : `<div class="row"><span>Meta do mês</span><span>não definida</span></div>`}
       ${indicRow}
+      ${customRows}
     </div>
     ${opts.clickable ? '<div style="text-align:center;font-size:10px;color:var(--muted);padding:0 0 10px;">clique para ver evolução</div>' : ''}
   </div>`;
 }
 
+// people whose "Indicações de produto" metric is hidden for now
+const HIDE_INDICACOES_FOR = ['Kevin'];
+
 function renderCompras(filtered){
   const stats = computeConsultantStats(filtered);
   const indic = computeIndicacoesStats(getFilteredIndicacoes());
+  const ganho = computeGanhoStats(getFilteredHandovers());
   document.getElementById('comprasGrid').innerHTML = APPROVED_CONSULTANTS.map(name=>
-    peopleCard(name, stats[name], getMeta('compras', name), {showConversoes:true, showPace:true, indicacoes: indic[name]||0, clickable:true})
+    peopleCard(name, stats[name], getMeta('compras', name), {
+      showConversoes:true, showPace:true,
+      indicacoes: HIDE_INDICACOES_FOR.includes(name) ? null : (indic[name]||0),
+      clickable:true,
+      customMetrics: state.customMetrics[name] || [],
+      ganhoValor: ganho[name]||0,
+      ganhoMeta: getMeta('compras - ganho', name)
+    })
   ).join('');
 }
 function renderHF(filtered){
@@ -846,6 +961,60 @@ function renderHF(filtered){
   document.getElementById('farmersGrid').innerHTML = FARMERS.map(name=>peopleCard(name, fStats[name], getMeta('farmer', name), {})).join('');
   document.getElementById('xpGrid').innerHTML = XP.map(name=>peopleCard(name, xStats[name], getMeta('xp', name), {})).join('');
 }
+function getFilteredHandovers(){
+  const from = document.getElementById('fDateFrom').value ? new Date(document.getElementById('fDateFrom').value) : null;
+  const to = document.getElementById('fDateTo').value ? new Date(document.getElementById('fDateTo').value) : null;
+  return state.handovers.filter(h=>{
+    if(!h.date) return true;
+    if(from && h.date < from) return false;
+    if(to){ const toEnd = new Date(to); toEnd.setHours(23,59,59,999); if(h.date > toEnd) return false; }
+    return true;
+  });
+}
+
+function renderMetaGeral(filtered){
+  const groups = [['hunter','Hunters',HUNTERS],['farmer','Farmers',FARMERS],['xp','XP',XP]];
+  let html = groups.map(([g,label,roster])=>{
+    const stats = computeVendorStats(filtered, g);
+    const valor = Object.values(stats).reduce((a,s)=>a+s.valor,0);
+    const metaTotal = roster.reduce((a,n)=>a+(getMeta(g,n)||0),0);
+    const deveriaTer = metaTotal * paceFraction();
+    const pct = metaTotal ? Math.round((valor/metaTotal)*100) : null;
+    const pctClamped = pct!=null ? Math.min(100,pct) : null;
+    const barColor = pct==null ? 'var(--gold)' : (pct>=100 ? 'var(--good)' : (pct < (paceFraction()*100-15) ? 'var(--bad)' : 'var(--gold)'));
+    return `<div class="people-card">
+      <div class="bar">${label}</div>
+      <div class="big" style="padding-top:24px;"><div class="num">${fmtCurrencyShort(valor)}</div><div class="lbl">vendido no período</div></div>
+      ${metaTotal ? `<div style="display:flex;align-items:center;gap:8px;margin:0 14px 12px;">
+        <div class="progress" style="flex:1;"><div style="width:${pctClamped}%;background:${barColor};"></div></div>
+        <span style="font-size:11px;font-weight:800;color:${barColor};min-width:36px;text-align:right;">${pct}%</span>
+      </div>` : ''}
+      <div class="metrics">
+        <div class="row"><span>Meta total do time</span><span>${metaTotal ? fmtCurrencyShort(metaTotal) : 'não definida'}</span></div>
+        ${metaTotal ? `<div class="row"><span>Deveria ter vendido</span><span>${fmtCurrencyShort(deveriaTer)}</span></div>` : ''}
+      </div>
+    </div>`;
+  }).join('');
+
+  const ganhoTotal = getFilteredHandovers().filter(h=>h.ganho).reduce((a,h)=>a+h.valor,0);
+  const ganhoMeta = getMeta('compras - ganho','Ganho Total');
+  const gPct = ganhoMeta ? Math.round((ganhoTotal/ganhoMeta)*100) : null;
+  const gPctClamped = gPct!=null ? Math.min(100,gPct) : null;
+  const gBarColor = gPct==null ? 'var(--gold)' : (gPct>=100 ? 'var(--good)' : (gPct < (paceFraction()*100-15) ? 'var(--bad)' : 'var(--gold)'));
+  html += `<div class="people-card">
+    <div class="bar">Ganho (handover)</div>
+    <div class="big" style="padding-top:24px;"><div class="num">${fmtCurrencyShort(ganhoTotal)}</div><div class="lbl">total ganho no período</div></div>
+    ${ganhoMeta ? `<div style="display:flex;align-items:center;gap:8px;margin:0 14px 12px;">
+      <div class="progress" style="flex:1;"><div style="width:${gPctClamped}%;background:${gBarColor};"></div></div>
+      <span style="font-size:11px;font-weight:800;color:${gBarColor};min-width:36px;text-align:right;">${gPct}%</span>
+    </div>` : ''}
+    <div class="metrics">
+      <div class="row"><span>Meta de ganho</span><span>${ganhoMeta ? fmtCurrencyShort(ganhoMeta) : 'não definida'}</span></div>
+    </div>
+  </div>`;
+  document.getElementById('metaGeralGrid').innerHTML = html;
+}
+
 function renderTicketTable(filtered){
   const stats = computeConsultantStats(filtered);
   document.getElementById('ticketBody').innerHTML = APPROVED_CONSULTANTS.map(name=>{
@@ -867,6 +1036,23 @@ function renderTempoEntrega(){
     const badge = good==null ? '' : (good ? '<span style="color:var(--good);font-weight:700;">dentro da meta</span>' : '<span style="color:var(--bad);font-weight:700;">acima da meta</span>');
     return `<tr><td>${name}</td><td>${it.meta!=null?it.meta:'—'}</td><td style="font-weight:700;">${it.atual}</td><td>${badge}</td></tr>`;
   }).join('');
+}
+
+function renderHandovers(){
+  const from = document.getElementById('fDateFrom').value ? new Date(document.getElementById('fDateFrom').value) : null;
+  const to = document.getElementById('fDateTo').value ? new Date(document.getElementById('fDateTo').value) : null;
+  const filtered = state.handovers.filter(h=>{
+    if(!h.date) return true;
+    if(from && h.date < from) return false;
+    if(to){ const toEnd = new Date(to); toEnd.setHours(23,59,59,999); if(h.date > toEnd) return false; }
+    return true;
+  });
+  document.getElementById('handoverBody').innerHTML = filtered.map(h=>{
+    const dataFmt = h.date ? h.date.toLocaleDateString('pt-BR') : '—';
+    const ganhoBadge = h.ganho ? '<span style="color:var(--good);font-weight:700;">Ganho</span>' : `<span style="color:var(--muted);">${h.ganhoRaw||'—'}</span>`;
+    const linkHtml = h.link ? `<a href="${h.link}" target="_blank" rel="noopener" style="color:var(--gold);">abrir</a>` : '—';
+    return `<tr><td>${dataFmt}</td><td>${h.projeto}</td><td>${h.lead}</td><td>${fmtCurrency(h.valor)}</td><td>${ganhoBadge}</td><td>${h.compras||'—'}</td><td>${linkHtml}</td></tr>`;
+  }).join('') || '<tr><td colspan="7" style="color:var(--muted);">Nenhum handover no período (ou a planilha ainda não foi conectada).</td></tr>';
 }
 
 function renderOutros(filtered){
@@ -1062,6 +1248,12 @@ document.getElementById('btnClearFilters').addEventListener('click', ()=>{
   renderAll();
 });
 document.getElementById('btnRefresh').addEventListener('click', loadAllData);
+
+// hide the Configurações tab from normal users — only visible with ?config=1 in the URL
+if(!new URLSearchParams(window.location.search).has('config')){
+  const settingsTab = document.querySelector('.tab[data-tab="settings"]');
+  if(settingsTab) settingsTab.style.display = 'none';
+}
 document.querySelector('.logo').addEventListener('click', ()=>{
   const now = new Date();
   document.getElementById('fDateFrom').value = toInputDate(firstDayOfMonth(now));
