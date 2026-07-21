@@ -284,6 +284,7 @@ const DEFAULT_ALIASES = {
   'beatriz':'Beatriz Alcara','beatriz alcara':'Beatriz Alcara','bea':'Beatriz Alcara','bia':'Beatriz Alcara',
   'rafael':'Rafael "Chelo" Teixeira','chelo':'Rafael "Chelo" Teixeira','tchelo':'Rafael "Chelo" Teixeira','rafa':'Rafael "Chelo" Teixeira',
   'rafael chelo texeira':'Rafael "Chelo" Teixeira','rafael "chelo" texeira':'Rafael "Chelo" Teixeira',
+  'rafael chelo teixeira':'Rafael "Chelo" Teixeira','rafael "chelo" teixeira':'Rafael "Chelo" Teixeira',
   'mariana':'Mariana Estevão','mari':'Mariana Estevão','mariana estevao':'Mariana Estevão',
   'matheus':'Matheus Rocha','matheus rocha':'Matheus Rocha','matheys':'Matheus Rocha',
   'joao pedro':'João Pedro','jp':'João Pedro','jp brasil':'JP Brasil',
@@ -356,6 +357,9 @@ function canonicalName(raw){
   if(!key) return null;
   if(state.aliasMap[key]) return state.aliasMap[key];
   if(DEFAULT_ALIASES[key]) return DEFAULT_ALIASES[key];
+  // fallback: if the raw text already IS one of the approved names (just quoted/accented/cased differently), accept it directly
+  const directMatch = APPROVED_CONSULTANTS.find(n => normKey(n) === key);
+  if(directMatch) return directMatch;
   return null;
 }
 function vendorCanonical(raw){
