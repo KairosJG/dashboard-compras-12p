@@ -49,7 +49,8 @@ window._libsReady = Promise.allSettled([
   .brand{display:flex;align-items:center;gap:14px;}
   .logo{font-weight:900;font-size:22px;letter-spacing:-0.5px;background:var(--gold);color:#0b0b0c;padding:6px 10px;border-radius:10px;cursor:pointer;user-select:none;box-shadow:0 4px 14px rgba(255,199,44,.35);transition:transform .15s ease;}
   .logo:hover{transform:scale(1.05);}
-  .logo img{display:block;height:36px;width:auto;border-radius:6px;}
+  .logo.has-image{background:none;padding:0;box-shadow:none;}
+  .logo img{display:block;height:40px;width:auto;border-radius:8px;}
   .brand h1{font-size:15px;margin:0;font-weight:700;color:var(--text);}
   .brand .sub{font-size:11px;color:var(--muted);margin-top:2px;}
   .top-actions{display:flex;align-items:center;gap:10px;font-size:12px;color:var(--muted);}
@@ -904,7 +905,7 @@ window._libsReady.then(()=>{ loadAllData(); });
     if(i >= LOGO_CANDIDATES.length) return; // keep the "12P" text badge
     const test = new Image();
     const src = LOGO_CANDIDATES[i++];
-    test.onload = ()=>{ document.getElementById('logoEl').innerHTML = `<img src="${src}">`; };
+    test.onload = ()=>{ const el = document.getElementById('logoEl'); el.classList.add('has-image'); el.innerHTML = `<img src="${src}">`; };
     test.onerror = tryNext;
     test.src = src;
   }
