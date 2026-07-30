@@ -1044,6 +1044,8 @@ function renderMetaGeral(filtered){
   let html = groups.map(([g,label,roster])=>{
     const stats = computeVendorStats(filtered, g);
     const valor = Object.values(stats).reduce((a,s)=>a+s.valor,0);
+    const count = Object.values(stats).reduce((a,s)=>a+s.count,0);
+    const ticket = count ? valor/count : 0;
     const metaTotal = roster.reduce((a,n)=>a+(getMeta(g,n)||0),0);
     const deveriaTer = metaTotal * paceFraction();
     const pct = metaTotal ? Math.round((valor/metaTotal)*100) : null;
@@ -1056,6 +1058,7 @@ function renderMetaGeral(filtered){
       <div class="metrics">
         <div class="row"><span>Meta total do time</span><span>${metaTotal ? fmtCurrencyShort(metaTotal) : 'não definida'}</span></div>
         ${metaTotal ? `<div class="row"><span>Deveria ter vendido</span><span>${fmtCurrencyShort(deveriaTer)}</span></div>` : ''}
+        <div class="row"><span>Ticket médio</span><span>${fmtCurrency(ticket)}</span></div>
       </div>
     </div>`;
   }).join('');
