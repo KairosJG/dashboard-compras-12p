@@ -41,9 +41,17 @@ window._libsReady = Promise.allSettled([
     --bg:#0b0b0c; --panel:#151517; --panel-2:#1c1c1f; --line:#2a2a2e;
     --gold:#FFC72C; --gold-dim:#8a6b12; --text:#f2f2f0; --muted:#9a9a9f;
     --good:#3ecf7a; --bad:#ef5b5b; --radius:16px;
+    --chart-text:#9a9a9f; --chart-grid:#2a2a2e; --gauge-track:#2a2a2e;
+  }
+  body.light-theme{
+    --bg:#f4f4f6; --panel:#ffffff; --panel-2:#f0f0f3; --line:#e0e0e5;
+    --gold:#c98e00; --gold-dim:#e8c877; --text:#1a1a1c; --muted:#5b5b60;
+    --good:#1e9e5a; --bad:#d63d3d;
+    --chart-text:#5b5b60; --chart-grid:#e0e0e5; --gauge-track:#e0e0e5;
   }
   *{box-sizing:border-box;}
-  body{margin:0;background:radial-gradient(ellipse at top,#161618 0%,#0b0b0c 60%);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;}
+  body{margin:0;background:radial-gradient(ellipse at top,#161618 0%,#0b0b0c 60%);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;transition:background .2s ease,color .2s ease;}
+  body.light-theme{background:radial-gradient(ellipse at top,#ffffff 0%,#f0f0f3 60%);}
   .wrap{max-width:1280px;margin:0 auto;padding:18px 20px 60px;}
   header.top{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;padding:14px 20px;background:linear-gradient(145deg,#181819,#131314);border:1px solid var(--line);border-radius:20px;margin-bottom:16px;box-shadow:0 8px 24px rgba(0,0,0,.35);}
   .brand{display:flex;align-items:center;gap:14px;}
@@ -58,6 +66,8 @@ window._libsReady = Promise.allSettled([
   button.btn.secondary{background:transparent;color:var(--text);border:1px solid var(--line);}
   .banner{padding:10px 14px;border-radius:12px;font-size:13px;margin-bottom:16px;border:1px solid var(--line);}
   .banner.err{background:#2a1414;border-color:#5a2323;color:#ffb4b4;}
+  body.light-theme .banner.err{background:#ffe5e5;border-color:#f5b4b4;color:#a01515;}
+  body.light-theme .month-pill{background:#fff3d6;border-color:#e8c877;}
   .filters{display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;background:linear-gradient(145deg,#181819,#131314);border:1px solid var(--line);border-radius:18px;padding:14px 16px;margin-bottom:16px;box-shadow:0 6px 18px rgba(0,0,0,.25);}
   .filter-group{display:flex;flex-direction:column;gap:4px;min-width:150px;}
   .filter-group label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.03em;}
@@ -85,6 +95,9 @@ window._libsReady = Promise.allSettled([
   .people-card{background:linear-gradient(165deg,#1e1e21,#161618);border:1px solid var(--line);border-radius:18px;overflow:hidden;box-shadow:0 6px 18px rgba(0,0,0,.3);transition:transform .18s ease,box-shadow .18s ease;}
   .people-card:hover{transform:translateY(-4px);box-shadow:0 12px 28px rgba(0,0,0,.4);}
   .people-card .bar{background:linear-gradient(120deg,#ffd35c,#FFC72C);color:#0b0b0c;font-weight:800;font-size:13px;text-align:center;padding:10px 8px;letter-spacing:.02em;}
+  body.light-theme header.top,body.light-theme .filters,body.light-theme .kpi,body.light-theme .card{background:linear-gradient(160deg,#ffffff,#f6f6f8);box-shadow:0 4px 14px rgba(0,0,0,.08);}
+  body.light-theme .people-card{background:linear-gradient(165deg,#ffffff,#f6f6f8);box-shadow:0 4px 14px rgba(0,0,0,.1);}
+  body.light-theme .avatar{box-shadow:0 2px 8px rgba(0,0,0,.15);}
   .people-card .avatar-wrap{display:flex;justify-content:center;padding:18px 0 8px;}
   .avatar{border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:800;color:#0b0b0c;overflow:hidden;box-shadow:0 4px 12px rgba(0,0,0,.35);}
   .avatar img{width:100%;height:100%;object-fit:cover;border-radius:50%;}
@@ -129,6 +142,7 @@ window._libsReady = Promise.allSettled([
     </div>
     <div class="top-actions">
       <span id="dataSourceNote"></span>
+      <button class="btn secondary" id="btnTheme">☀️ Modo claro</button>
       <button class="btn secondary" id="btnRefresh">Atualizar dados</button>
     </div>
   </header>
@@ -459,6 +473,11 @@ function avatarColor(name){
   const hue = 38 + (hash % 25);
   return `hsl(${hue} 85% 55%)`;
 }
+function isLightTheme(){ return document.body.classList.contains('light-theme'); }
+function chartTextColor(){ return isLightTheme() ? '#5b5b60' : '#9a9a9f'; }
+function chartGridColor(){ return isLightTheme() ? '#e0e0e5' : '#2a2a2e'; }
+function gaugeTrackColor(){ return isLightTheme() ? '#e0e0e5' : '#2a2a2e'; }
+
 function gaugeSVG(pct, color){
   const size = 150, radius = size/2 - 12, cx = size/2, cy = size/2;
   const clamped = Math.max(0, Math.min(100, pct==null?0:pct));
@@ -467,7 +486,7 @@ function gaugeSVG(pct, color){
   const label = pct==null ? '—' : pct+'%';
   return `<div style="display:flex;justify-content:center;padding:10px 0 0;">
     <svg width="${size}" height="${size/2+22}" viewBox="0 0 ${size} ${size/2+22}">
-      <path d="M 12 ${cy} A ${radius} ${radius} 0 0 1 ${size-12} ${cy}" fill="none" stroke="#2a2a2e" stroke-width="14" stroke-linecap="round"/>
+      <path d="M 12 ${cy} A ${radius} ${radius} 0 0 1 ${size-12} ${cy}" fill="none" stroke="${gaugeTrackColor()}" stroke-width="14" stroke-linecap="round"/>
       <path d="M 12 ${cy} A ${radius} ${radius} 0 0 1 ${size-12} ${cy}" fill="none" stroke="${color}" stroke-width="14" stroke-linecap="round"
         stroke-dasharray="${circumference}" stroke-dashoffset="${offset}"/>
       <text x="${cx}" y="${cy-4}" text-anchor="middle" font-size="24" font-weight="800" fill="${color}">${label}</text>
@@ -1134,7 +1153,7 @@ function renderCharts(filtered){
   destroyChart('month');
   state.charts.month = new Chart(document.getElementById('chartMonth'), {
     type:'bar', data:{ labels: monthKeys, datasets:[{ label:'Vendas', data: monthKeys.map(k=>byMonth[k]), backgroundColor:'#FFC72C' }] },
-    options:{ responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}}, scales:{ x:{ticks:{color:'#9a9a9f'},grid:{color:'#2a2a2e'}}, y:{ticks:{color:'#9a9a9f'},grid:{color:'#2a2a2e'}} } }
+    options:{ responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}}, scales:{ x:{ticks:{color:chartTextColor()},grid:{color:chartGridColor()}}, y:{ticks:{color:chartTextColor()},grid:{color:chartGridColor()}} } }
   });
 
   const hStats = computeVendorStats(filtered,'hunter'), fStats = computeVendorStats(filtered,'farmer'), xStats = computeVendorStats(filtered,'xp');
@@ -1147,10 +1166,10 @@ function renderCharts(filtered){
     type:'bar',
     data:{ labels, datasets:[
       {label:'Realizado', data: realizado, backgroundColor:'#3ecf7a'},
-      {label:'Meta', data: metas, backgroundColor:'#2a2a2e'}
+      {label:'Meta', data: metas, backgroundColor:chartGridColor()}
     ]},
-    options:{ responsive:true, maintainAspectRatio:false, plugins:{legend:{labels:{color:'#f2f2f0'}}},
-      scales:{ x:{ticks:{color:'#9a9a9f'},grid:{color:'#2a2a2e'}}, y:{ticks:{color:'#9a9a9f'},grid:{color:'#2a2a2e'}} } }
+    options:{ responsive:true, maintainAspectRatio:false, plugins:{legend:{labels:{color: isLightTheme() ? '#1a1a1c' : '#f2f2f0'}}},
+      scales:{ x:{ticks:{color:chartTextColor()},grid:{color:chartGridColor()}}, y:{ticks:{color:chartTextColor()},grid:{color:chartGridColor()}} } }
   });
 }
 
@@ -1269,7 +1288,7 @@ function openPersonModal(name){
       type:'line',
       data:{ labels: rows.map(r=>monthLabel(r.key)), datasets:[{ label:'Vendido', data: rows.map(r=>r.valor), borderColor:'#FFC72C', backgroundColor:'rgba(255,199,44,.15)', tension:.3, fill:true }] },
       options:{ responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}},
-        scales:{ x:{ticks:{color:'#9a9a9f'},grid:{color:'#2a2a2e'}}, y:{ticks:{color:'#9a9a9f'},grid:{color:'#2a2a2e'}} } }
+        scales:{ x:{ticks:{color:chartTextColor()},grid:{color:chartGridColor()}}, y:{ticks:{color:chartTextColor()},grid:{color:chartGridColor()}} } }
     });
   } else {
     document.getElementById('chartPersonTrend').parentElement.innerHTML = '<div style="color:var(--muted);font-size:12px;padding:20px;text-align:center;">Gráfico indisponível no momento — os números abaixo continuam corretos.</div>';
@@ -1300,6 +1319,24 @@ document.getElementById('btnClearFilters').addEventListener('click', ()=>{
   renderAll();
 });
 document.getElementById('btnRefresh').addEventListener('click', loadAllData);
+
+// ---------- theme (light/dark) ----------
+function applyTheme(theme){
+  document.body.classList.toggle('light-theme', theme==='light');
+  document.getElementById('btnTheme').textContent = theme==='light' ? '🌙 Modo escuro' : '☀️ Modo claro';
+}
+function toggleTheme(){
+  const next = isLightTheme() ? 'dark' : 'light';
+  applyTheme(next);
+  try{ localStorage.setItem('dashboard-theme', next); }catch(e){}
+  if(state.sales.length) renderAll(); // redraw charts/gauges with correct colors
+}
+document.getElementById('btnTheme').addEventListener('click', toggleTheme);
+(function(){
+  let saved = null;
+  try{ saved = localStorage.getItem('dashboard-theme'); }catch(e){}
+  applyTheme(saved || 'dark');
+})();
 
 // hide the Configurações tab from normal users — only visible with ?config=1 in the URL
 if(!new URLSearchParams(window.location.search).has('config')){
