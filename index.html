@@ -378,6 +378,14 @@ function fmtCurrencyShort(n){
   return 'R$ '+n.toFixed(0);
 }
 function toInputDate(d){ const y=d.getFullYear(),m=String(d.getMonth()+1).padStart(2,'0'),day=String(d.getDate()).padStart(2,'0'); return `${y}-${m}-${day}`; }
+// parses an <input type="date"> value ("YYYY-MM-DD") as a LOCAL date, avoiding the
+// UTC-midnight parsing that new Date("YYYY-MM-DD") does (which shifts a day back
+// in negative-UTC-offset timezones like Brazil's).
+function parseInputDate(value){
+  if(!value) return null;
+  const [y,m,d] = value.split('-').map(Number);
+  return new Date(y, m-1, d);
+}
 function toMonthInput(d){ return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`; }
 function firstDayOfMonth(d){ return new Date(d.getFullYear(), d.getMonth(), 1); }
 function lastDayOfMonth(d){ return new Date(d.getFullYear(), d.getMonth()+1, 0); }
@@ -830,8 +838,8 @@ function fillSelect(id, values){
   }
 }
 function getFiltered(){
-  const from = document.getElementById('fDateFrom').value ? new Date(document.getElementById('fDateFrom').value) : null;
-  const to = document.getElementById('fDateTo').value ? new Date(document.getElementById('fDateTo').value) : null;
+  const from = parseInputDate(document.getElementById('fDateFrom').value);
+  const to = parseInputDate(document.getElementById('fDateTo').value);
   return state.sales.filter(s=>{
     if(from && s.date < from) return false;
     if(to){ const toEnd = new Date(to); toEnd.setHours(23,59,59,999); if(s.date > toEnd) return false; }
@@ -867,8 +875,8 @@ function paceFraction(){
 }
 
 function getFilteredIndicacoes(){
-  const from = document.getElementById('fDateFrom').value ? new Date(document.getElementById('fDateFrom').value) : null;
-  const to = document.getElementById('fDateTo').value ? new Date(document.getElementById('fDateTo').value) : null;
+  const from = parseInputDate(document.getElementById('fDateFrom').value);
+  const to = parseInputDate(document.getElementById('fDateTo').value);
   return state.indicacoes.filter(s=>{
     if(from && s.date < from) return false;
     if(to){ const toEnd = new Date(to); toEnd.setHours(23,59,59,999); if(s.date > toEnd) return false; }
@@ -1035,8 +1043,8 @@ function renderHF(filtered){
   document.getElementById('xpGrid').innerHTML = XP.map(name=>peopleCard(name, xStats[name], getMeta('xp', name), {})).join('');
 }
 function getFilteredHandovers(){
-  const from = document.getElementById('fDateFrom').value ? new Date(document.getElementById('fDateFrom').value) : null;
-  const to = document.getElementById('fDateTo').value ? new Date(document.getElementById('fDateTo').value) : null;
+  const from = parseInputDate(document.getElementById('fDateFrom').value);
+  const to = parseInputDate(document.getElementById('fDateTo').value);
   return state.handovers.filter(h=>{
     if(!h.date) return true;
     if(from && h.date < from) return false;
@@ -1108,8 +1116,8 @@ function renderTempoEntrega(){
 }
 
 function renderHandovers(){
-  const from = document.getElementById('fDateFrom').value ? new Date(document.getElementById('fDateFrom').value) : null;
-  const to = document.getElementById('fDateTo').value ? new Date(document.getElementById('fDateTo').value) : null;
+  const from = parseInputDate(document.getElementById('fDateFrom').value);
+  const to = parseInputDate(document.getElementById('fDateTo').value);
   const filtered = state.handovers.filter(h=>{
     if(!h.date) return true;
     if(from && h.date < from) return false;
