@@ -288,6 +288,11 @@ window._libsReady = Promise.allSettled([
       <thead><tr><th>Mês</th><th>Vendido</th><th>Conversões</th><th>Indicações</th><th id="modalTrendHead">Ganho (USD)</th></tr></thead>
       <tbody id="modalTrendBody"></tbody>
     </table>
+    <h3 style="font-size:14px;color:var(--gold);margin-top:20px;">Projetos fechados no período</h3>
+    <table>
+      <thead><tr><th>Data</th><th>Cliente</th><th>Valor</th></tr></thead>
+      <tbody id="modalDealsBody"></tbody>
+    </table>
   </div>
 </div>
 
@@ -708,6 +713,7 @@ function loadSales(csvText){
     const row = rows[i];
     if(!row || row.length<6) continue;
     const dateStr = row[0];
+    const empresa = (row[2]||'').toString().trim();
     const vendedorRaw = (row[3]||'').toString().trim();
     const valorRaw = row[5];
     const tagRaw = row[6];
@@ -718,7 +724,7 @@ function loadSales(csvText){
     const rawNames = extractRawNames(tagRaw);
     const names = [...new Set(rawNames.map(canonicalName).filter(Boolean))];
     const vend = vendorCanonical(vendedorRaw);
-    sales.push({ date, valor, names, vendedorName: vend.name, vendedorGroup: vend.group });
+    sales.push({ date, empresa, valor, names, vendedorName: vend.name, vendedorGroup: vend.group });
   }
   state.sales = sales.filter(s=>s.date);
 }
@@ -1284,6 +1290,16 @@ function openPersonModal(name){
   document.getElementById('modalTrendBody').innerHTML = rows.map(r=>
     `<tr><td>${monthLabel(r.key)}</td><td>${fmtCurrency(r.valor)}</td><td>${r.conv}</td><td>${r.indic}</td><td>${r.lastCol}</td></tr>`
   ).join('');
+
+  const monthSet = new Set(keys);
+  const deals = state.sales.filter(s=>{
+    if(s.valor<0 || !s.names.includes(name)) return false;
+    const k = `${s.date.getFullYear()}-${String(s.date.getMonth()+1).padStart(2,'0')}`;
+    return monthSet.has(k);
+  }).sort((a,b)=>b.date-a.date);
+  document.getElementById('modalDealsBody').innerHTML = deals.map(d=>
+    `<tr><td>${d.date.toLocaleDateString('pt-BR')}</td><td>${d.empresa||'—'}</td><td>${fmtCurrency(d.valor)}</td></tr>`
+  ).join('') || '<tr><td colspan="3" style="color:var(--muted);">Nenhum projeto fechado no período.</td></tr>';
   document.getElementById('personModalOverlay').style.display = 'flex';
   if(typeof Chart !== 'undefined'){
     destroyChart('personTrend');
