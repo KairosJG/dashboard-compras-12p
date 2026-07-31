@@ -285,7 +285,7 @@ window._libsReady = Promise.allSettled([
     <h3 id="modalTitle" style="font-size:16px;color:var(--gold);">Evolução</h3>
     <div class="chart-box" style="height:220px;"><canvas id="chartPersonTrend"></canvas></div>
     <table style="margin-top:14px;">
-      <thead><tr><th>Mês</th><th>Vendido</th><th>Conversões</th><th>Indicações</th><th id="modalTrendHead">Ganho (USD)</th></tr></thead>
+      <thead><tr id="modalTrendHeadRow"><th>Mês</th><th>Vendido</th><th>Conversões</th><th>Indicações</th><th id="modalTrendHead">Ganho (USD)</th></tr></thead>
       <tbody id="modalTrendBody"></tbody>
     </table>
     <h3 style="font-size:14px;color:var(--gold);margin-top:20px;">Projetos fechados no período</h3>
@@ -1038,9 +1038,9 @@ function renderHF(filtered){
   const hStats = computeVendorStats(filtered, 'hunter');
   const fStats = computeVendorStats(filtered, 'farmer');
   const xStats = computeVendorStats(filtered, 'xp');
-  document.getElementById('huntersGrid').innerHTML = HUNTERS.map(name=>peopleCard(name, hStats[name], getMeta('hunter', name), {})).join('');
-  document.getElementById('farmersGrid').innerHTML = FARMERS.map(name=>peopleCard(name, fStats[name], getMeta('farmer', name), {})).join('');
-  document.getElementById('xpGrid').innerHTML = XP.map(name=>peopleCard(name, xStats[name], getMeta('xp', name), {})).join('');
+  document.getElementById('huntersGrid').innerHTML = HUNTERS.map(name=>peopleCard(name, hStats[name], getMeta('hunter', name), {clickable:true})).join('');
+  document.getElementById('farmersGrid').innerHTML = FARMERS.map(name=>peopleCard(name, fStats[name], getMeta('farmer', name), {clickable:true})).join('');
+  document.getElementById('xpGrid').innerHTML = XP.map(name=>peopleCard(name, xStats[name], getMeta('xp', name), {clickable:true})).join('');
 }
 function getFilteredHandovers(){
   const from = parseInputDate(document.getElementById('fDateFrom').value);
@@ -1274,34 +1274,52 @@ function monthLabel(key){
 }
 function openPersonModal(name){
   const keys = last3MonthKeys();
-  const useCustom = HIDE_GANHO_FOR.includes(name) && (state.customMetrics[name]||[]).length>0;
+  const isVendedor = HUNTERS.includes(name) || FARMERS.includes(name) || XP.includes(name);
+  const useCustom = !isVendedor && HIDE_GANHO_FOR.includes(name) && (state.customMetrics[name]||[]).length>0;
   const customLabel = useCustom ? state.customMetrics[name][0].label : null;
-  const rows = keys.map(key=>{
-    const [y,m] = key.split('-').map(Number);
-    const monthSales = state.sales.filter(s=>s.valor>=0 && s.date.getFullYear()===y && s.date.getMonth()===m-1 && s.names.includes(name));
-    const valor = monthSales.reduce((a,s)=>a+s.valor,0);
-    const conv = monthSales.reduce((a,s)=>a+1,0);
-    const indic = state.indicacoes.filter(it=>it.compras===name && it.date.getFullYear()===y && it.date.getMonth()===m-1).length;
-    let lastCol;
-    if(useCustom){
-      const entries = (state.customMetrics[name]||[]).filter(cm=>cm.label===customLabel && cm.date.getFullYear()===y && cm.date.getMonth()===m-1);
-      const latest = entries.sort((a,b)=>b.date-a.date)[0];
-      lastCol = latest ? `${latest.atual!=null?latest.atual:'—'}${latest.meta!=null?' / '+latest.meta:''}` : '—';
-    } else {
-      const ganho = state.handovers.filter(h=>h.compras===name && h.date && h.date.getFullYear()===y && h.date.getMonth()===m-1).reduce((a,h)=>a+h.ganhoUsd,0);
-      lastCol = fmtUSD(ganho);
-    }
-    return {key, valor, conv, indic, lastCol};
-  });
+
+  let rows;
+  if(isVendedor){
+    document.getElementById('modalTrendHeadRow').innerHTML = '<th>Mês</th><th>Vendido</th><th>Nº vendas</th>';
+    rows = keys.map(key=>{
+      const [y,m] = key.split('-').map(Number);
+      const monthSales = state.sales.filter(s=>s.valor>=0 && s.date.getFullYear()===y && s.date.getMonth()===m-1 && s.vendedorName===name);
+      const valor = monthSales.reduce((a,s)=>a+s.valor,0);
+      return {key, valor, count: monthSales.length};
+    });
+    document.getElementById('modalTrendBody').innerHTML = rows.map(r=>
+      `<tr><td>${monthLabel(r.key)}</td><td>${fmtCurrency(r.valor)}</td><td>${r.count}</td></tr>`
+    ).join('');
+  } else {
+    document.getElementById('modalTrendHeadRow').innerHTML = `<th>Mês</th><th>Vendido</th><th>Conversões</th><th>Indicações</th><th id="modalTrendHead">${useCustom ? customLabel : 'Ganho (USD)'}</th>`;
+    rows = keys.map(key=>{
+      const [y,m] = key.split('-').map(Number);
+      const monthSales = state.sales.filter(s=>s.valor>=0 && s.date.getFullYear()===y && s.date.getMonth()===m-1 && s.names.includes(name));
+      const valor = monthSales.reduce((a,s)=>a+s.valor,0);
+      const conv = monthSales.length;
+      const indic = state.indicacoes.filter(it=>it.compras===name && it.date.getFullYear()===y && it.date.getMonth()===m-1).length;
+      let lastCol;
+      if(useCustom){
+        const entries = (state.customMetrics[name]||[]).filter(cm=>cm.label===customLabel && cm.date.getFullYear()===y && cm.date.getMonth()===m-1);
+        const latest = entries.sort((a,b)=>b.date-a.date)[0];
+        lastCol = latest ? `${latest.atual!=null?latest.atual:'—'}${latest.meta!=null?' / '+latest.meta:''}` : '—';
+      } else {
+        const ganho = state.handovers.filter(h=>h.compras===name && h.date && h.date.getFullYear()===y && h.date.getMonth()===m-1).reduce((a,h)=>a+h.ganhoUsd,0);
+        lastCol = fmtUSD(ganho);
+      }
+      return {key, valor, conv, indic, lastCol};
+    });
+    document.getElementById('modalTrendBody').innerHTML = rows.map(r=>
+      `<tr><td>${monthLabel(r.key)}</td><td>${fmtCurrency(r.valor)}</td><td>${r.conv}</td><td>${r.indic}</td><td>${r.lastCol}</td></tr>`
+    ).join('');
+  }
+
   document.getElementById('modalTitle').textContent = `Evolução — ${name}`;
-  document.getElementById('modalTrendHead').textContent = useCustom ? customLabel : 'Ganho (USD)';
-  document.getElementById('modalTrendBody').innerHTML = rows.map(r=>
-    `<tr><td>${monthLabel(r.key)}</td><td>${fmtCurrency(r.valor)}</td><td>${r.conv}</td><td>${r.indic}</td><td>${r.lastCol}</td></tr>`
-  ).join('');
 
   const monthSet = new Set(keys);
   const deals = state.sales.filter(s=>{
-    if(s.valor<0 || !s.names.includes(name)) return false;
+    if(s.valor<0) return false;
+    if(isVendedor){ if(s.vendedorName!==name) return false; } else { if(!s.names.includes(name)) return false; }
     const k = `${s.date.getFullYear()}-${String(s.date.getMonth()+1).padStart(2,'0')}`;
     return monthSet.has(k);
   }).sort((a,b)=>b.date-a.date);
@@ -1324,6 +1342,12 @@ function openPersonModal(name){
 document.getElementById('comprasGrid').addEventListener('click', (e)=>{
   const card = e.target.closest('[data-person]');
   if(card) openPersonModal(card.dataset.person);
+});
+['huntersGrid','farmersGrid','xpGrid'].forEach(id=>{
+  document.getElementById(id).addEventListener('click', (e)=>{
+    const card = e.target.closest('[data-person]');
+    if(card) openPersonModal(card.dataset.person);
+  });
 });
 document.getElementById('btnCloseModal').addEventListener('click', ()=>{ document.getElementById('personModalOverlay').style.display = 'none'; });
 document.getElementById('personModalOverlay').addEventListener('click', (e)=>{ if(e.target.id==='personModalOverlay') e.currentTarget.style.display='none'; });
