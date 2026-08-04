@@ -305,8 +305,8 @@ const TEMPO_ENTREGA_CSV = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vR3O2
 const HANDOVER_CSV = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vR3O2y8LsZD7lnm1Hw_wfZoYJek_fjKfNjtjnxMix1KwD4pHcll1_J7MXCrl6Kc86DOdu_11YhJxxXa/pub?gid=1726963060&single=true&output=csv';
 
 const APPROVED_CONSULTANTS = ['Malu','Beatriz Alcara','Rafael "Chelo" Teixeira','Mariana Estevão','Matheus Rocha','João Pedro','JP Brasil'];
-const HUNTERS = ['Jayanne','Monique','Thiago','Maira','Duymi'];
-const FARMERS = ['Pablo','Raul','Ana Carolina','Victor Hugo (Choco)','Andres','Roberto','Danilo','Fernando Finatto','Amarylis Silva','Jeni'];
+const HUNTERS = ['Jayanne','Monique','Maira','Duymi'];
+const FARMERS = ['Pablo','Raul','Ana Carolina','Andres','Danilo','Fernando Finatto','Amarylis Silva','Jeni'];
 const XP = ['Diana Silva','Kevin'];
 
 // Monthly targets now live in a protected tab of the Google Sheet ("Metas"),
@@ -1020,7 +1020,7 @@ function peopleCard(name, stats, metaVal, opts){
 // people whose "Indicações de produto" metric is hidden for now
 const HIDE_INDICACOES_FOR = [];
 // people whose "Ganho" block is hidden (custom metric shown in its place instead)
-const HIDE_GANHO_FOR = [];
+const HIDE_GANHO_FOR = ['Beatriz Alcara'];
 
 function renderCompras(filtered){
   const stats = computeConsultantStats(filtered);
