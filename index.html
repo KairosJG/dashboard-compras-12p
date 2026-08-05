@@ -4,8 +4,10 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>12P — Dashboard Compras</title>
-<!-- PapaParse and Chart.js are loaded dynamically below with CDN fallbacks,
-     since some networks block cdnjs.cloudflare.com specifically. -->
+<!-- Chart.js is loaded dynamically below with CDN fallbacks, since some networks
+     block cdnjs.cloudflare.com specifically. Google Identity Services is loaded
+     directly (it's Google's own required script for the login flow). -->
+<script src="https://accounts.google.com/gsi/client" async defer></script>
 <script>
 function loadScriptWithFallback(urls){
   return new Promise((resolve, reject)=>{
@@ -21,18 +23,12 @@ function loadScriptWithFallback(urls){
     tryNext();
   });
 }
-const PAPA_SOURCES = [
-  'https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js',
-  'https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js',
-  'https://unpkg.com/papaparse@5.4.1/papaparse.min.js'
-];
 const CHART_SOURCES = [
   'https://cdnjs.cloudflare.com/ajax/libs/chart.js/4.4.3/chart.umd.min.js',
   'https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js',
   'https://unpkg.com/chart.js@4.4.3/dist/chart.umd.min.js'
 ];
 window._libsReady = Promise.allSettled([
-  loadScriptWithFallback(PAPA_SOURCES),
   loadScriptWithFallback(CHART_SOURCES)
 ]);
 </script>
@@ -130,6 +126,17 @@ window._libsReady = Promise.allSettled([
 </style>
 </head>
 <body>
+
+<div id="loginGate" style="position:fixed;inset:0;background:#0b0b0c;z-index:200;display:flex;align-items:center;justify-content:center;padding:20px;">
+  <div style="max-width:380px;width:100%;text-align:center;background:#151517;border:1px solid #2a2a2e;border-radius:20px;padding:36px 28px;box-shadow:0 12px 32px rgba(0,0,0,.5);">
+    <div style="font-weight:900;font-size:28px;letter-spacing:-0.5px;background:#FFC72C;color:#0b0b0c;padding:8px 14px;border-radius:10px;display:inline-block;margin-bottom:18px;">12P</div>
+    <h2 style="color:#f2f2f0;font-size:17px;margin:0 0 8px;">Dashboard Compras</h2>
+    <p style="color:#9a9a9f;font-size:13px;line-height:1.6;margin:0 0 22px;">Entre com sua conta Google para acessar. Só quem tem permissão de leitura na planilha consegue ver os dados.</p>
+    <button id="btnGoogleLogin" style="background:#FFC72C;color:#0b0b0c;border:none;font-weight:700;padding:12px 20px;border-radius:10px;cursor:pointer;font-size:14px;width:100%;">Entrar com Google</button>
+    <p id="loginError" style="color:#ef5b5b;font-size:12px;margin-top:14px;display:none;"></p>
+  </div>
+</div>
+
 <div class="wrap">
 
   <header class="top">
@@ -141,9 +148,11 @@ window._libsReady = Promise.allSettled([
       </div>
     </div>
     <div class="top-actions">
+      <span id="userEmailNote" style="font-size:11px;color:var(--muted);"></span>
       <span id="dataSourceNote"></span>
       <button class="btn secondary" id="btnTheme">☀️ Modo claro</button>
       <button class="btn secondary" id="btnRefresh">Atualizar dados</button>
+      <button class="btn secondary" id="btnLogout">Sair</button>
     </div>
   </header>
 
@@ -297,12 +306,19 @@ window._libsReady = Promise.allSettled([
 </div>
 
 <script>
-const GOALS_CSV = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vR3O2y8LsZD7lnm1Hw_wfZoYJek_fjKfNjtjnxMix1KwD4pHcll1_J7MXCrl6Kc86DOdu_11YhJxxXa/pub?output=csv';
-const SALES_CSV = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vR3O2y8LsZD7lnm1Hw_wfZoYJek_fjKfNjtjnxMix1KwD4pHcll1_J7MXCrl6Kc86DOdu_11YhJxxXa/pub?gid=1071860344&single=true&output=csv';
-const METAS_CSV = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vR3O2y8LsZD7lnm1Hw_wfZoYJek_fjKfNjtjnxMix1KwD4pHcll1_J7MXCrl6Kc86DOdu_11YhJxxXa/pub?gid=2049238854&single=true&output=csv';
-const INDICACOES_CSV = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vR3O2y8LsZD7lnm1Hw_wfZoYJek_fjKfNjtjnxMix1KwD4pHcll1_J7MXCrl6Kc86DOdu_11YhJxxXa/pub?gid=1195570752&single=true&output=csv';
-const TEMPO_ENTREGA_CSV = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vR3O2y8LsZD7lnm1Hw_wfZoYJek_fjKfNjtjnxMix1KwD4pHcll1_J7MXCrl6Kc86DOdu_11YhJxxXa/pub?gid=50455619&single=true&output=csv';
-const HANDOVER_CSV = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vR3O2y8LsZD7lnm1Hw_wfZoYJek_fjKfNjtjnxMix1KwD4pHcll1_J7MXCrl6Kc86DOdu_11YhJxxXa/pub?gid=1726963060&single=true&output=csv';
+const SPREADSHEET_ID = '1KhrZxUl3kkHXroYD0HnvoZSNGPFNIh9TY_ZJZNN7mhE';
+const OAUTH_CLIENT_ID = '368559767676-011qnogbrkrgc2h0v43e7v5eo5nkoaec.apps.googleusercontent.com';
+const OAUTH_SCOPES = 'https://www.googleapis.com/auth/spreadsheets.readonly';
+// gid of each tab inside the spreadsheet (from the old publish links) — used to look up
+// the current tab title via the Sheets API, so renaming a tab later won't break anything.
+const SHEET_GIDS = {
+  goals: 0,
+  sales: 1071860344,
+  metas: 2049238854,
+  indicacoes: 1195570752,
+  tempoEntrega: 50455619,
+  handover: 1726963060
+};
 
 const APPROVED_CONSULTANTS = ['Malu','Beatriz Alcara','Rafael "Chelo" Teixeira','Mariana Estevão','Matheus Rocha','João Pedro','JP Brasil'];
 const HUNTERS = ['Jayanne','Monique','Maira','Duymi'];
@@ -348,7 +364,7 @@ const DEFAULT_VENDOR_ALIASES = {
 
 let state = {
   sales: [], goals: [], metas: {}, indicacoes: [], tempoEntrega: [], customMetrics: {}, handovers: [], aliasMap: {}, vendorAliasMap: {},
-  charts: {}, defaultsApplied: false
+  charts: {}, defaultsApplied: false, accessToken: null, userEmail: null
 };
 
 // ---------- helpers ----------
@@ -527,20 +543,41 @@ function avatarHTML(name, size){
   </div>`;
 }
 
-// ---------- fetch ----------
-async function fetchCSVText(url){
-  try{
-    const r = await fetch(url, {cache:'no-store'});
-    if(!r.ok) throw new Error('status '+r.status);
-    return await r.text();
-  }catch(e){
-    const proxied = 'https://api.allorigins.win/raw?url=' + encodeURIComponent(url);
-    const r2 = await fetch(proxied, {cache:'no-store'});
-    if(!r2.ok) throw new Error('proxy status '+r2.status);
-    return await r2.text();
-  }
+// ---------- Google Sheets API (authenticated) ----------
+function quoteSheetName(title){ return `'${title.replace(/'/g,"''")}'`; }
+
+async function fetchSheetTitles(){
+  const url = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}?fields=sheets.properties`;
+  const r = await fetch(url, { headers: { Authorization: 'Bearer ' + state.accessToken } });
+  if(!r.ok) throw new Error('metadata status ' + r.status);
+  const data = await r.json();
+  const byGid = {};
+  for(const sh of (data.sheets||[])) byGid[sh.properties.sheetId] = sh.properties.title;
+  return byGid;
 }
-function parseCSV(text){ return Papa.parse(text, {skipEmptyLines:false}).data; }
+
+async function fetchAllSheetValues(){
+  const titles = await fetchSheetTitles();
+  const rangeFor = (key) => {
+    const gid = SHEET_GIDS[key];
+    const title = titles[gid];
+    if(title===undefined) throw new Error(`aba com gid ${gid} (${key}) não encontrada na planilha`);
+    return quoteSheetName(title);
+  };
+  const keys = Object.keys(SHEET_GIDS);
+  const ranges = keys.map(k => 'ranges=' + encodeURIComponent(rangeFor(k)));
+  const url = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values:batchGet?${ranges.join('&')}&valueRenderOption=FORMATTED_VALUE`;
+  const r = await fetch(url, { headers: { Authorization: 'Bearer ' + state.accessToken } });
+  if(!r.ok){
+    if(r.status===401) throw new Error('sessão expirada, faça login de novo');
+    if(r.status===403) throw new Error('sem permissão de leitura nessa planilha — peça para ser adicionado como leitor');
+    throw new Error('status ' + r.status);
+  }
+  const data = await r.json();
+  const out = {};
+  keys.forEach((k,i)=>{ out[k] = (data.valueRanges[i] && data.valueRanges[i].values) || []; });
+  return out;
+}
 
 // ---------- goals parsing (Compras metas come from here — live sheet) ----------
 const GOAL_KEYS = ['CONVERSÔES','CONVERSOES','META','META DE SIMULAÇÕES','META DE SIMULACOES','SIMULAÇÕES ENTREGUES','SIMULACOES ENTREGUES','SIMULAÇÕES ENTREGUES MÊS','SIMULACOES ENTREGUES MES','SIMULAÇÕES ENTREGUES HOJE','SIMULACOES ENTREGUES HOJE','META DO SPRINT','ENTREGAS DO SPRINT','NOVAS ENVIADAS PARA A PROCESS','ALTERAÇÕES ENVIADAS A PROCESS','ALTERACOES ENVIADAS A PROCESS','NOVAS  ENTREGUES','NOVAS ENTREGUES','ALTERAÇÕES ENTREGUES','ALTERACOES ENTREGUES','NOVAS ONGOING','ALTERAÇÕES ONGOING','ALTERACOES ONGOING','DATA'];
@@ -573,8 +610,7 @@ function parseGoalsBlock(rows, labelCol, valueCol){
   if(current && current.name) out.push(current);
   return out;
 }
-function loadGoals(csvText){
-  const rows = parseCSV(csvText);
+function loadGoals(rows){
   const left = parseGoalsBlock(rows, 5, 6);
   const right = parseGoalsBlock(rows, 11, 12);
   state.goals = [...left, ...right].filter(p=>p.name && p.name.length>1)
@@ -582,8 +618,7 @@ function loadGoals(csvText){
 }
 
 // ---------- metas parsing (Mes, Grupo, Nome, Meta) ----------
-function loadMetas(csvText){
-  const rows = parseCSV(csvText);
+function loadMetas(rows){
   const metas = {};
   for(let i=1;i<rows.length;i++){
     const row = rows[i];
@@ -612,8 +647,7 @@ function parseFlexibleDate(s){
   const d = new Date(s);
   return isNaN(d.getTime()) ? null : d;
 }
-function loadHandovers(csvText){
-  const rows = parseCSV(csvText);
+function loadHandovers(rows){
   const out = [];
   for(let i=1;i<rows.length;i++){
     const row = rows[i];
@@ -636,9 +670,8 @@ function loadHandovers(csvText){
 }
 
 // ---------- indicações de produto parsing (Mes, Data, Projeto, Compras, Consultor, Produto, Lógica) ----------
-function loadIndicacoes(csvText){
+function loadIndicacoes(rows){
   yearTracker = {lastMonth:null, year:2026};
-  const rows = parseCSV(csvText);
   const out = [];
   for(let i=1;i<rows.length;i++){
     const row = rows[i];
@@ -658,8 +691,7 @@ function loadIndicacoes(csvText){
 }
 
 // ---------- tempo de entrega parsing (Data, Nome, Meta, Atual) — lower is better ----------
-function loadTempoEntrega(csvText){
-  const rows = parseCSV(csvText);
+function loadTempoEntrega(rows){
   const out = [];
   const custom = {};
   for(let i=1;i<rows.length;i++){
@@ -716,9 +748,8 @@ function parseSaleDate(dateStr, mesVenda){
   if(d==null) d=1;
   return new Date(y, m-1, d);
 }
-function loadSales(csvText){
+function loadSales(rows){
   yearTracker = {lastMonth:null, year:2025};
-  const rows = parseCSV(csvText);
   const sales = [];
   for(let i=1;i<rows.length;i++){
     const row = rows[i];
@@ -750,52 +781,26 @@ async function saveVendorAliasMap(){ try{ await window.storage.set('vendor-alias
 
 // ---------- main load ----------
 async function loadAllData(){
+  if(!state.accessToken){ showLoginGate(); return; }
   document.getElementById('banners').innerHTML = '';
   document.getElementById('lastUpdated').textContent = 'atualizando…';
-  let goalsText, salesText;
+  let values;
   try{
     await loadPersisted();
-    [goalsText, salesText] = await Promise.all([fetchCSVText(GOALS_CSV), fetchCSVText(SALES_CSV)]);
-    loadGoals(goalsText);
-    loadSales(salesText);
-    try{
-      const metasText = await fetchCSVText(METAS_CSV);
-      loadMetas(metasText);
-    }catch(metaErr){
-      console.warn('Metas sheet not loaded:', metaErr);
-      state.metas = {};
-    }
-    try{
-      const indicacoesText = await fetchCSVText(INDICACOES_CSV);
-      loadIndicacoes(indicacoesText);
-    }catch(indErr){
-      console.warn('Indicações sheet not loaded:', indErr);
-      state.indicacoes = [];
-    }
-    try{
-      const tempoText = await fetchCSVText(TEMPO_ENTREGA_CSV);
-      loadTempoEntrega(tempoText);
-    }catch(tempoErr){
-      console.warn('Tempo de entrega sheet not loaded:', tempoErr);
-      state.tempoEntrega = [];
-    }
-    if(HANDOVER_CSV){
-      try{
-        const handoverText = await fetchCSVText(HANDOVER_CSV);
-        loadHandovers(handoverText);
-      }catch(hErr){
-        console.warn('Handover sheet not loaded:', hErr);
-        state.handovers = [];
-      }
-    }
-    if(state.indicacoes.length === 0 || state.tempoEntrega.length === 0){
-      const missing = [];
-      if(state.indicacoes.length === 0) missing.push('Indicações de produto');
-      if(state.tempoEntrega.length === 0) missing.push('Tempo de entrega');
-      document.getElementById('banners').innerHTML += `<div class="banner err">Não consegui carregar: ${missing.join(', ')}. Os números dessas métricas vão aparecer zerados até isso ser resolvido. Clique em "Atualizar dados" para tentar de novo.</div>`;
-    }
+    values = await fetchAllSheetValues();
+    loadGoals(values.goals);
+    loadSales(values.sales);
+    try{ loadMetas(values.metas); }catch(metaErr){ console.warn('Metas parse error:', metaErr); state.metas = {}; }
+    try{ loadIndicacoes(values.indicacoes); }catch(indErr){ console.warn('Indicações parse error:', indErr); state.indicacoes = []; }
+    try{ loadTempoEntrega(values.tempoEntrega); }catch(tempoErr){ console.warn('Tempo de entrega parse error:', tempoErr); state.tempoEntrega = []; }
+    try{ loadHandovers(values.handover); }catch(hErr){ console.warn('Handover parse error:', hErr); state.handovers = []; }
   }catch(e){
     console.error(e);
+    if(/sessão expirada|401/.test(e.message||'')){
+      state.accessToken = null;
+      showLoginGate('Sua sessão expirou. Entre de novo para continuar.');
+      return;
+    }
     document.getElementById('banners').innerHTML = '<div class="banner err">Não consegui carregar os dados da planilha agora (' + (e.message||'erro de rede') + '). Clique em "Atualizar dados" para tentar de novo.</div>';
     document.getElementById('lastUpdated').textContent = 'falha ao atualizar';
     return;
@@ -1408,7 +1413,59 @@ document.querySelector('.logo').addEventListener('click', ()=>{
   renderAll();
 });
 
-window._libsReady.then(()=>{ loadAllData(); });
+// ---------- Google login ----------
+let tokenClient = null;
+function showLoginGate(message){
+  document.getElementById('loginGate').style.display = 'flex';
+  const errEl = document.getElementById('loginError');
+  if(message){ errEl.textContent = message; errEl.style.display = 'block'; }
+  else { errEl.style.display = 'none'; }
+}
+function hideLoginGate(){ document.getElementById('loginGate').style.display = 'none'; }
+
+async function fetchUserEmail(){
+  try{
+    const r = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', { headers: { Authorization: 'Bearer ' + state.accessToken } });
+    if(!r.ok) return;
+    const info = await r.json();
+    state.userEmail = info.email || null;
+    document.getElementById('userEmailNote').textContent = state.userEmail || '';
+  }catch(e){}
+}
+
+function initGoogleAuth(){
+  if(!window.google || !google.accounts || !google.accounts.oauth2){
+    setTimeout(initGoogleAuth, 300); // Google Identity Services script still loading
+    return;
+  }
+  tokenClient = google.accounts.oauth2.initTokenClient({
+    client_id: OAUTH_CLIENT_ID,
+    scope: OAUTH_SCOPES,
+    callback: (resp)=>{
+      if(resp.error){ showLoginGate('Não foi possível entrar (' + resp.error + '). Tente de novo.'); return; }
+      state.accessToken = resp.access_token;
+      hideLoginGate();
+      fetchUserEmail();
+      loadAllData();
+      window._libsReady.then(()=>{ if(state.sales.length) renderAll(); });
+    }
+  });
+  document.getElementById('btnGoogleLogin').addEventListener('click', ()=>{
+    tokenClient.requestAccessToken({ prompt: state.accessToken ? '' : 'consent' });
+  });
+}
+document.getElementById('btnLogout').addEventListener('click', ()=>{
+  if(state.accessToken && window.google && google.accounts){
+    google.accounts.oauth2.revoke(state.accessToken, ()=>{});
+  }
+  state.accessToken = null;
+  state.userEmail = null;
+  document.getElementById('userEmailNote').textContent = '';
+  showLoginGate();
+});
+
+initGoogleAuth();
+showLoginGate();
 
 // try to load the real logo image (tries png/jpg/jpeg/svg); keeps the text badge if none exist
 (function(){
