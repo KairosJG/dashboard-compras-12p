@@ -129,7 +129,7 @@ window._libsReady = Promise.allSettled([
 
 <div id="loginGate" style="position:fixed;inset:0;background:#0b0b0c;z-index:200;display:flex;align-items:center;justify-content:center;padding:20px;">
   <div style="max-width:380px;width:100%;text-align:center;background:#151517;border:1px solid #2a2a2e;border-radius:20px;padding:36px 28px;box-shadow:0 12px 32px rgba(0,0,0,.5);">
-    <div style="font-weight:900;font-size:28px;letter-spacing:-0.5px;background:#FFC72C;color:#0b0b0c;padding:8px 14px;border-radius:10px;display:inline-block;margin-bottom:18px;">12P</div>
+    <div class="logo" id="loginLogoEl" style="font-size:28px;display:inline-block;margin-bottom:18px;">12P</div>
     <h2 style="color:#f2f2f0;font-size:17px;margin:0 0 8px;">Dashboard Compras</h2>
     <p style="color:#9a9a9f;font-size:13px;line-height:1.6;margin:0 0 22px;">Entre com sua conta Google para acessar. Só quem tem permissão de leitura na planilha consegue ver os dados.</p>
     <button id="btnGoogleLogin" style="background:#FFC72C;color:#0b0b0c;border:none;font-weight:700;padding:12px 20px;border-radius:10px;cursor:pointer;font-size:14px;width:100%;">Entrar com Google</button>
@@ -312,7 +312,6 @@ const OAUTH_SCOPES = 'https://www.googleapis.com/auth/spreadsheets.readonly';
 // gid of each tab inside the spreadsheet (from the old publish links) — used to look up
 // the current tab title via the Sheets API, so renaming a tab later won't break anything.
 const SHEET_GIDS = {
-  goals: 0,
   sales: 1071860344,
   metas: 2049238854,
   indicacoes: 1195570752,
@@ -363,7 +362,7 @@ const DEFAULT_VENDOR_ALIASES = {
 };
 
 let state = {
-  sales: [], goals: [], metas: {}, indicacoes: [], tempoEntrega: [], customMetrics: {}, handovers: [], aliasMap: {}, vendorAliasMap: {},
+  sales: [], metas: {}, indicacoes: [], tempoEntrega: [], customMetrics: {}, handovers: [], aliasMap: {}, vendorAliasMap: {},
   charts: {}, defaultsApplied: false, accessToken: null, userEmail: null
 };
 
@@ -579,44 +578,6 @@ async function fetchAllSheetValues(){
   return out;
 }
 
-// ---------- goals parsing (Compras metas come from here — live sheet) ----------
-const GOAL_KEYS = ['CONVERSÔES','CONVERSOES','META','META DE SIMULAÇÕES','META DE SIMULACOES','SIMULAÇÕES ENTREGUES','SIMULACOES ENTREGUES','SIMULAÇÕES ENTREGUES MÊS','SIMULACOES ENTREGUES MES','SIMULAÇÕES ENTREGUES HOJE','SIMULACOES ENTREGUES HOJE','META DO SPRINT','ENTREGAS DO SPRINT','NOVAS ENVIADAS PARA A PROCESS','ALTERAÇÕES ENVIADAS A PROCESS','ALTERACOES ENVIADAS A PROCESS','NOVAS  ENTREGUES','NOVAS ENTREGUES','ALTERAÇÕES ENTREGUES','ALTERACOES ENTREGUES','NOVAS ONGOING','ALTERAÇÕES ONGOING','ALTERACOES ONGOING','DATA'];
-function isKnownKey(label){ if(!label) return false; const up = stripAccents(label.trim().toUpperCase()); return GOAL_KEYS.some(k=>stripAccents(k.toUpperCase())===up); }
-function normalizeKeyLabel(label){
-  const up = stripAccents(label.trim().toUpperCase());
-  if(up.includes('CONVERS')) return 'conversoes';
-  if(up==='META') return 'meta';
-  if(up==='DATA') return 'data';
-  return null;
-}
-function parseBRNumberFromMoneyStr(s){ if(!s) return 0; let str = String(s).replace('R$','').trim(); str = str.replace(/\./g,'').replace(',','.'); const n = parseFloat(str); return isNaN(n)?0:n; }
-function parseGoalsBlock(rows, labelCol, valueCol){
-  const out = []; let current = null;
-  for(const row of rows){
-    const label = (row[labelCol]||'').toString().trim();
-    const value = (row[valueCol]||'').toString().trim();
-    if(!label) continue;
-    if(!isKnownKey(label)){
-      if(current && current.name) out.push(current);
-      current = {name: label.replace(/^DASHBORD\s+/i,'').replace(/^DASHBOARD\s+/i,'').trim()};
-    } else {
-      const key = normalizeKeyLabel(label);
-      if(key && key!=='data' && current){
-        if(key==='meta') current[key] = parseBRNumberFromMoneyStr(value);
-        else { const n = parseFloat(String(value).replace(',','.')); current[key] = isNaN(n)?value:n; }
-      }
-    }
-  }
-  if(current && current.name) out.push(current);
-  return out;
-}
-function loadGoals(rows){
-  const left = parseGoalsBlock(rows, 5, 6);
-  const right = parseGoalsBlock(rows, 11, 12);
-  state.goals = [...left, ...right].filter(p=>p.name && p.name.length>1)
-    .map(g=>({...g, canonical: canonicalName(g.name)})).filter(g=>g.canonical);
-}
-
 // ---------- metas parsing (Mes, Grupo, Nome, Meta) ----------
 function loadMetas(rows){
   const metas = {};
@@ -788,7 +749,8 @@ async function loadAllData(){
   try{
     await loadPersisted();
     values = await fetchAllSheetValues();
-    loadGoals(values.goals);
+    // goals/COMPRAS sheet no longer used — it derived from Wons Nutshell via formulas,
+    // and meta targets now come exclusively from the "Metas" tab.
     loadSales(values.sales);
     try{ loadMetas(values.metas); }catch(metaErr){ console.warn('Metas parse error:', metaErr); state.metas = {}; }
     try{ loadIndicacoes(values.indicacoes); }catch(indErr){ console.warn('Indicações parse error:', indErr); state.indicacoes = []; }
@@ -863,10 +825,6 @@ function getMeta(group, name){
   const mk = activeMonthKey();
   const bucket = state.metas[mk];
   if(bucket && bucket[group] && bucket[group][name]!=null) return bucket[group][name];
-  if(group==='compras'){
-    const g = state.goals.find(g=>g.canonical===name);
-    if(g && g.meta) return g.meta;
-  }
   return null;
 }
 // how much of the month has elapsed, based on the real calendar date vs. the month being viewed
@@ -1468,18 +1426,20 @@ initGoogleAuth();
 showLoginGate();
 
 // try to load the real logo image (tries png/jpg/jpeg/svg); keeps the text badge if none exist
-(function(){
+function loadLogoInto(elId){
   let i = 0;
   function tryNext(){
     if(i >= LOGO_CANDIDATES.length) return; // keep the "12P" text badge
     const test = new Image();
     const src = LOGO_CANDIDATES[i++];
-    test.onload = ()=>{ const el = document.getElementById('logoEl'); el.classList.add('has-image'); el.innerHTML = `<img src="${src}">`; };
+    test.onload = ()=>{ const el = document.getElementById(elId); if(el){ el.classList.add('has-image'); el.innerHTML = `<img src="${src}">`; } };
     test.onerror = tryNext;
     test.src = src;
   }
   tryNext();
-})();
+}
+loadLogoInto('logoEl');
+loadLogoInto('loginLogoEl');
 </script>
 </body>
 </html>
