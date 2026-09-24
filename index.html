@@ -319,9 +319,9 @@ const SHEET_GIDS = {
   handover: 1726963060
 };
 
-const APPROVED_CONSULTANTS = ['Malu','Beatriz Alcara','Rafael "Chelo" Teixeira','Mariana Estevão','Matheus Rocha','João Pedro','JP Brasil'];
+const APPROVED_CONSULTANTS = ['Malu','Beatriz Alcara','Rafael "Chelo" Teixeira','Mariana Estevão','Matheus Rocha','João Pedro','JP Brasil','Gabriele','Nicoly'];
 const HUNTERS = ['Jayanne','Monique','Maira','Duymi Rodrigues','Alan','Andreia'];
-const FARMERS = ['Pablo','Raul','Ana Carolina','Andres','Anna Telles','Fernando Finatto','Amarylis Silva','Jeni'];
+const FARMERS = ['Pablo','Raul','Ana Carolina','Andres','Danilo','Fernando Finatto','Amarylis Silva','Jeni'];
 const XP = ['Diana Silva','Kevin'];
 
 // Monthly targets now live in a protected tab of the Google Sheet ("Metas"),
@@ -337,6 +337,7 @@ const DEFAULT_ALIASES = {
   'mariana':'Mariana Estevão','mari':'Mariana Estevão','mariana estevao':'Mariana Estevão',
   'matheus':'Matheus Rocha','matheus rocha':'Matheus Rocha','matheys':'Matheus Rocha',
   'joao pedro':'João Pedro','jp':'João Pedro','jp brasil':'JP Brasil',
+  'gabriele':'Gabriele','nicoly':'Nicoly',
   'kevin':'Kevin','kevin anjos':'Kevin'
 };
 
@@ -355,10 +356,10 @@ const DEFAULT_VENDOR_ALIASES = {
   'victor hugo':'Victor Hugo (Choco)','choco':'Victor Hugo (Choco)','victor biselli':'Victor Hugo (Choco)',
   'andres':'Andres','andres pino':'Andres',
   'pablo':'Pablo','pablo fernandes':'Pablo',
-  'Ana':'anna Telles','Anna Telles':'Anna',
+  'roberto':'Roberto','danilo':'Danilo',
   'fernando':'Fernando Finatto','fernando finatto':'Fernando Finatto',
   'diana':'Diana Silva','diana silva':'Diana Silva',
-  'kevin':'Kevin','kevin anjos':'Kevin Bogea dos Anjos',
+  'kevin':'Kevin','kevin anjos':'Kevin',
   'amarylis':'Amarylis Silva','amarylis silva':'Amarylis Silva',
   'jeni':'Jeni'
 };
@@ -461,10 +462,11 @@ const LOGO_CANDIDATES = ['logo-12p.png','logo-12p.jpg','logo-12p.jpeg','logo-12p
 const NAME_SLUGS = {
   'Malu':'malu','Beatriz Alcara':'beatriz-alcara','Rafael "Chelo" Teixeira':'rafael-chelo',
   'Mariana Estevão':'mariana-estevao','Matheus Rocha':'matheus-rocha','João Pedro':'joao-pedro','JP Brasil':'jp-brasil','Kevin':'kevin',
+  'Gabriele':'gabriele','Nicoly':'nicoly',
   'Jayanne':'jayanne','Monique':'monique','Thiago':'thiago','Maira':'maira','Duymi Rodrigues':'duymi',
   'Alan':'alan','Andreia':'andreia',
   'Pablo':'pablo','Raul':'raul','Ana Carolina':'ana-carolina','Victor Hugo (Choco)':'victor-hugo-choco',
-  'Andres':'andres','Roberto':'roberto','Anna Telles':'anna','Fernando Finatto':'fernando-finatto',
+  'Andres':'andres','Roberto':'roberto','Danilo':'danilo','Fernando Finatto':'fernando-finatto',
   'Diana Silva':'diana-silva',
   'Amarylis Silva':'amarylis-silva','Jeni':'jeni'
 };
@@ -480,10 +482,7 @@ const PHOTO_OVERRIDES = {
   'JP Brasil': 'fotos/Jp brasil.jpg',
   'Mariana Estevão': 'fotos/mariana.png',
   'Matheus Rocha': 'fotos/matheus.png',
-  'Rafael "Chelo" Teixeira': 'fotos/rafael.png',
-  'Duyimi Rodrigues': 'fotos/duymi.png',
-  'anna Telles': 'fotos/anna.png',
-  'andreia': 'fotos/andreia.png'
+  'Rafael "Chelo" Teixeira': 'fotos/rafael.png'
 };
 window._avatarCandidates = {};
 function handleAvatarError(img){
